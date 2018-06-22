@@ -241,9 +241,6 @@ export class Remote extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            ip: "0",
-            port: "13579",
-            snapshot: {uri: 'http://192.168.10.60:13579/snapshot.jpg?' + Math.random()},
             file: "",
             filepatharg: "",
             filepath: "",
@@ -266,8 +263,6 @@ export class Remote extends Component {
     }
 
     componentDidMount() {
-        AsyncStorage.getItem('IP').then((value) => this.setState({ 'ip': value }))
-        AsyncStorage.getItem('PORT').then((value) => this.setState({ 'port': value }))
         this.timerID = setInterval(
             () => this.tick(),
             1000
@@ -278,74 +273,72 @@ export class Remote extends Component {
         clearInterval(this.timerID);
     }
 
-    isAvailable = () => {
-        const timeout = new Promise((resolve, reject) => {
-            setTimeout(reject, 150, 'Request timed out');
-        });
-        const request = fetch('http://' + this.state.ip + ':' + this.state.port);
-        return Promise
-            .race([timeout, request])
-            .then(response => this.parseInfo())
-            .catch(error => console.log('Timeout'));
+    XHR(ip,port) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = (e) => {
+            if (request.readyState !== 4) {
+                return;
+            }
+            if (request.status === 200) {
+                this.fetchInfo(ip,port)
+            }
+        };
+        request.open('GET', 'http://' + ip  + ":" + port + "/variables.html");
+        request.send();
+        this.TimeOutTimer = setTimeout(() => {
+            if (request.readyState !== XMLHttpRequest.DONE) {
+                request.abort();
+            }
+        }, 125);
     }
 
-    fetchInfo() {
-        return fetch('http://' + this.state.ip + ':' + this.state.port + '/variables.html')
+    fetchInfo(ip,port) {
+        fetch('http://' + ip + ':' + port + '/variables.html')
             .then((res) => res.text())
             .then((text)=>{
-                return text
+                let doc = new DOMParser().parseFromString(text,'text/html')
+                this.setState({
+                    file: doc.getElementById('file').textContent,
+                    filepatharg: doc.getElementById('filepatharg').textContent,
+                    filepath: doc.getElementById('filepath').textContent,
+                    filedirarg: doc.getElementById('filedirarg').textContent,
+                    filedir: doc.getElementById('filedir').textContent,
+                    state: parseInt(doc.getElementById('state').textContent),
+                    statestring: doc.getElementById('statestring').textContent,
+                    // position: parseInt(doc.getElementById('position').textContent),
+                    //positionstring: doc.getElementById('positionstring').textContent,
+                    duration: parseFloat(doc.getElementById('duration').textContent),
+                    durationstring: doc.getElementById('durationstring').textContent,
+                    //volumelevel: parseInt(doc.getElementById('volumelevel').textContent),
+                    muted: doc.getElementById('muted').textContent,
+                    playbackrate: parseInt(doc.getElementById('playbackrate').textContent),
+                    size: doc.getElementById('size').textContent,
+                    reloadtime: parseInt(doc.getElementById('reloadtime').textContent),
+                    version: doc.getElementById('version').textContent,
+                    //snapshot: {uri: 'http://192.168.10.60:13579/snapshot.jpg?' + Math.random()}
+                });
+                if(!this.seeking) {
+                    this.setState({position: parseInt(doc.getElementById('position').textContent)})
+                    this.setState({positionstring: doc.getElementById('positionstring').textContent})
+                    this.setState({volumelevel: parseInt(doc.getElementById('volumelevel').textContent)})
+                    this.setState({volumelevelclamped: this.state.volumelevel})
+                }
             });
-    }
-
-    parseInfo() {
-        let doc;
-        this.fetchInfo().then(function(info) {
-            doc = new DOMParser().parseFromString(info,'text/html')
-        }).then(setStates => {
-            this.setState({
-                file: doc.getElementById('file').textContent,
-                filepatharg: doc.getElementById('filepatharg').textContent,
-                filepath: doc.getElementById('filepath').textContent,
-                filedirarg: doc.getElementById('filedirarg').textContent,
-                filedir: doc.getElementById('filedir').textContent,
-                state: parseInt(doc.getElementById('state').textContent),
-                statestring: doc.getElementById('statestring').textContent,
-                // position: parseInt(doc.getElementById('position').textContent),
-                //positionstring: doc.getElementById('positionstring').textContent,
-                duration: parseFloat(doc.getElementById('duration').textContent),
-                durationstring: doc.getElementById('durationstring').textContent,
-                //volumelevel: parseInt(doc.getElementById('volumelevel').textContent),
-                muted: doc.getElementById('muted').textContent,
-                playbackrate: parseInt(doc.getElementById('playbackrate').textContent),
-                size: doc.getElementById('size').textContent,
-                reloadtime: parseInt(doc.getElementById('reloadtime').textContent),
-                version: doc.getElementById('version').textContent,
-                //snapshot: {uri: 'http://192.168.10.60:13579/snapshot.jpg?' + Math.random()}
-            });
-        }).then(checkIfSeeking => {
-            if(!this.seeking) {
-                this.setState({position: parseInt(doc.getElementById('position').textContent)})
-                this.setState({positionstring: doc.getElementById('positionstring').textContent})
-                this.setState({volumelevel: parseInt(doc.getElementById('volumelevel').textContent)})
-                this.setState({volumelevelclamped: this.state.volumelevel})
-            }
-        });
     }
 
     tick() {
-        AsyncStorage.getItem('IP').then((value) => this.setState({ 'ip': value }))
-        AsyncStorage.getItem('PORT').then((value) => this.setState({ 'port': value }))
-        this.isAvailable();
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port)))
     }
 
     HTTPPostRequest(command, extraName, extraValue) {
-        fetch("http://" + this.state.ip +  ":" + this.state.port +"/command.html", {
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) =>
+        fetch("http://" + ip +  ":" + port +"/command.html", {
             method: 'POST',
             headers: new Headers({
                 'Content-Type': 'application/x-www-form-urlencoded',
             }),
             body: "wm_command=" + command + "&" + extraName + "=" + extraValue
-        })
+        })))
     }
 
     convertMillisToTime(millis){
@@ -384,6 +377,7 @@ export class Remote extends Component {
                   <this.UIButton text={'Play'} command={commands.Play}/>
                   <this.UIButton text={'Pause'} command={commands.Pause}/>
                   <this.UIButton text={'Stop'} command={commands.Stop}/>
+                  <this.UIButton text={'Full Screen'} command={commands.FullScreen}/>
                 </View>
                 <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'powderblue'}}>
                   <View style={{flex: 5, }}>
@@ -404,7 +398,7 @@ export class Remote extends Component {
         )
     }
 
-    VolumeSlider = (props) => {
+    VolumeSlider = props => {
         return(<Slider style={{height: "100%"}}
                        value={this.state.volumelevel}
                        step={1}
@@ -421,7 +415,7 @@ export class Remote extends Component {
                            this.timeOut = setTimeout(() => this.seeking = false, 1250);}}/>)
     }
 
-    SeekBar = () => {
+    SeekBar = props => {
         return(<Slider style={{height: "100%"}}
                        value={this.state.position}
                        maximumValue={this.state.duration}
@@ -438,7 +432,7 @@ export class Remote extends Component {
                            this.timeOut = setTimeout(() => this.seeking = false, 1250);}}/>)
     }
 
-    UIButton = (props) => {
+    UIButton = props => {
         return(
             <TouchableOpacity style={{
                 flex:1,
@@ -496,7 +490,10 @@ export class Settings extends Component {
 export class Directory extends Component {
     render() {
         return(
-            <View style={{flex: 1, backgroundColor: 'steelblue'}}></View>
+            <View style={{flex: 1, backgroundColor: 'steelblue'}}>
+                <WebView injectedJavaScript={`const meta = document.createElement('meta'); meta.setAttribute('content', 'width=device-width, initial-scale=0.7, maximum-scale=0.9, user-scalable=0'); meta.setAttribute('name', 'viewport'); document.getElementsByTagName('head')[0].appendChild(meta); `}
+                         scalesPageToFit={false} source={{uri: 'http://192.168.10.60:13579/browser.html'}}></WebView>
+            </View>
         )
 
     }
