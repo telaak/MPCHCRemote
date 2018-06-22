@@ -494,12 +494,13 @@ export class Directory extends Component {
         this.state = {
             location: "",
             mp4links: [],
-            directoryLinks: []
+            directoryLinks: [],
+            currentDirectory: <Button title={'Placeholder'} onPress={() => {console.log("kappa")}}></Button>
         }
     }
 
     componentDidMount() {
-        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port)))
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))
     }
 
     playFileFromURL(location) {
@@ -507,18 +508,17 @@ export class Directory extends Component {
             fetch("http://" + ip +  ":" + port + location)))
     }
 
-    XHR(ip,port) {
+    XHR(ip,port,url) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
                 return;
             }
             if (request.status === 200) {
-                this.setState({doc: request.responseText})
                 this.parseHTML(request.responseText)
             }
         };
-        request.open('GET', 'http://' + ip  + ":" + port + "/browser.html");
+        request.open('GET', 'http://' + ip  + ":" + port + url);
         request.send();
         this.TimeOutTimer = setTimeout(() => {
             if (request.readyState !== XMLHttpRequest.DONE) {
@@ -534,16 +534,17 @@ export class Directory extends Component {
         this.setState({location: currentDirectoryName})
         var directories = tables[1].getElementsByClassName('dirname')
         var backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href')
+        this.setState({currentDirectory: <Button title={currentDirectoryName} onPress={() => AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,backLink)))}></Button>})
         var directoryLinks = []
         for(var i = 1; i < directories.length; i++) {
             let directoryName = directories[i].textContent
             let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href')
-            directoryLinks.push(<Button key={i} title={"/" + directoryName}></Button>)
+            directoryLinks.push(<Button key={i} title={"/" + directoryName + "/"} onPress={() => AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,directoryLink)))}></Button>)
         }
         this.setState({directoryLinks: directoryLinks})
         var mp4 = tables[1].getElementsByClassName('mp4')
         var mp4links = []
-        for(let i = 1; i < mp4.length; i++) {
+        for(let i = 0; i < mp4.length; i++) {
            let fileName = mp4[i].getElementsByTagName('td')[0].textContent
            let fileLink = mp4[i].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
            mp4links.push(<Button key={i} title={fileName} onPress={() => this.playFileFromURL(fileLink)}></Button>)
@@ -557,7 +558,7 @@ export class Directory extends Component {
 
     render() {
         return(
-            <ScrollView style={{flex: 1, backgroundColor: 'powderblue'}}><Text>{this.state.location}</Text>{this.state.directoryLinks}{this.state.mp4links}</ScrollView>
+            <ScrollView style={{flex: 1, backgroundColor: 'powderblue'}}>{this.state.currentDirectory}{this.state.directoryLinks}{this.state.mp4links}</ScrollView>
         )
 
     }
