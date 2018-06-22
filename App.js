@@ -10,7 +10,8 @@ import {
     WebView,
     TouchableOpacity,
     TextInput,
-    AsyncStorage
+    AsyncStorage,
+    ScrollView
 } from 'react-native'
 import Swiper from 'react-native-swiper';
 
@@ -488,12 +489,75 @@ export class Settings extends Component {
 }
 
 export class Directory extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            location: "",
+            mp4links: [],
+            directoryLinks: []
+        }
+    }
+
+    componentDidMount() {
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port)))
+    }
+
+    playFileFromURL(location) {
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) =>
+            fetch("http://" + ip +  ":" + port + location)))
+    }
+
+    XHR(ip,port) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = (e) => {
+            if (request.readyState !== 4) {
+                return;
+            }
+            if (request.status === 200) {
+                this.setState({doc: request.responseText})
+                this.parseHTML(request.responseText)
+            }
+        };
+        request.open('GET', 'http://' + ip  + ":" + port + "/browser.html");
+        request.send();
+        this.TimeOutTimer = setTimeout(() => {
+            if (request.readyState !== XMLHttpRequest.DONE) {
+                request.abort();
+            }
+        }, 125);
+    }
+
+    parseHTML(html) {
+        let doc = new DOMParser().parseFromString(html,'text/html')
+        var tables = doc.getElementsByTagName('table')
+        var currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36)
+        this.setState({location: currentDirectoryName})
+        var directories = tables[1].getElementsByClassName('dirname')
+        var backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href')
+        var directoryLinks = []
+        for(var i = 1; i < directories.length; i++) {
+            let directoryName = directories[i].textContent
+            let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href')
+            directoryLinks.push(<Button key={i} title={"/" + directoryName}></Button>)
+        }
+        this.setState({directoryLinks: directoryLinks})
+        var mp4 = tables[1].getElementsByClassName('mp4')
+        var mp4links = []
+        for(let i = 1; i < mp4.length; i++) {
+           let fileName = mp4[i].getElementsByTagName('td')[0].textContent
+           let fileLink = mp4[i].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
+           mp4links.push(<Button key={i} title={fileName} onPress={() => this.playFileFromURL(fileLink)}></Button>)
+        }
+        this.setState({mp4links: mp4links})
+    }
+
+    renderButtons() {
+
+    }
+
     render() {
         return(
-            <View style={{flex: 1, backgroundColor: 'steelblue'}}>
-                <WebView injectedJavaScript={`const meta = document.createElement('meta'); meta.setAttribute('content', 'width=device-width, initial-scale=0.7, maximum-scale=0.9, user-scalable=0'); meta.setAttribute('name', 'viewport'); document.getElementsByTagName('head')[0].appendChild(meta); `}
-                         scalesPageToFit={false} source={{uri: 'http://192.168.10.60:13579/browser.html'}}></WebView>
-            </View>
+            <ScrollView style={{flex: 1, backgroundColor: 'powderblue'}}><Text>{this.state.location}</Text>{this.state.directoryLinks}{this.state.mp4links}</ScrollView>
         )
 
     }
