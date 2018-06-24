@@ -11,7 +11,8 @@ import {
     TouchableOpacity,
     TextInput,
     AsyncStorage,
-    ScrollView
+    ScrollView,
+    FlatList
 } from 'react-native'
 import Swiper from 'react-native-swiper';
 
@@ -457,13 +458,19 @@ export class Settings extends Component {
         super(props)
         this.state = {
             ip: "",
-            port: "13579"
+            port: "13579",
+            extension: "mp4",
+            extensions: ["mp4","mkv"]
         }
     }
 
     componentDidMount() {
         AsyncStorage.getItem('IP').then((value) => this.setState({ 'ip': value }))
         AsyncStorage.getItem('PORT').then((value) => this.setState({ 'port': value }))
+        AsyncStorage.getItem('EXTENSIONS').then((value) => {if(value == null){AsyncStorage.setItem('EXTENSIONS',JSON.stringify(this.state.extensions))}
+        else {
+            this.setState({extensions: JSON.parse(value)})
+        }})
     }
 
     render() {
@@ -483,6 +490,31 @@ export class Settings extends Component {
                       value={this.state.port}/>
                 </View>
               </View>
+                <View style={{flex: 1, flexDirection: 'row'}}>
+                    <View style={{flex: 1}}>
+                        <TextInput style={{height: 40}} value={this.state.extension} onChangeText={(text) => {this.setState({extension: text})}}></TextInput>
+                    </View>
+                    <View style={{flex: 1}}>
+                        <Button title={"Add extension"} onPress={() => {
+                            AsyncStorage.getItem('EXTENSIONS').then((value) => {
+                                let parsedArray = JSON.parse(value)
+                                if(!parsedArray.includes(this.state.extension)) {
+                                    parsedArray.push(this.state.extension)
+                                    AsyncStorage.setItem('EXTENSIONS',JSON.stringify(parsedArray)).then(this.setState({extensions: parsedArray}))
+                                }
+                            })
+                        }}>
+                        </Button>
+                    </View>
+                </View>
+                <View style={{flex: 1}}>
+                    <FlatList keyExtractor={(item) => item.indexOf().toString()} extraData={this.state} data={this.state.extensions} renderItem={({item,index}) => <Button onPress={() =>{
+                        let splicedArray = this.state.extensions
+                        splicedArray.splice(index,1)
+                        this.setState({extensions: splicedArray})
+                        AsyncStorage.setItem('EXTENSIONS',JSON.stringify(splicedArray))
+                    }} title={item}></Button>}></FlatList>
+                </View>
             </View>
         )
     }
@@ -493,9 +525,9 @@ export class Directory extends Component {
         super(props)
         this.state = {
             location: "",
-            mp4links: [],
+            fileLinks: [],
             directoryLinks: [],
-            currentDirectory: <Button title={'Placeholder'} onPress={() => {console.log("kappa")}}></Button>
+            currentDirectory: <Button title={'Connect'} onPress={() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))}}></Button>
         }
     }
 
@@ -503,12 +535,11 @@ export class Directory extends Component {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))
     }
 
-    playFileFromURL(location) {
-        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) =>
-            fetch("http://" + ip +  ":" + port + location)))
+    playFileFromURL(ip, port, location) {
+        fetch("http://" + ip +  ":" + port + location)
     }
 
-    XHR(ip,port,url) {
+    XHR(ip, port, url) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
@@ -528,28 +559,41 @@ export class Directory extends Component {
     }
 
     parseHTML(html) {
-        let doc = new DOMParser().parseFromString(html,'text/html')
-        var tables = doc.getElementsByTagName('table')
-        var currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36)
-        this.setState({location: currentDirectoryName})
-        var directories = tables[1].getElementsByClassName('dirname')
-        var backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href')
-        this.setState({currentDirectory: <Button title={currentDirectoryName} onPress={() => AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,backLink)))}></Button>})
-        var directoryLinks = []
-        for(var i = 1; i < directories.length; i++) {
-            let directoryName = directories[i].textContent
-            let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href')
-            directoryLinks.push(<Button key={i} title={"/" + directoryName + "/"} onPress={() => AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,directoryLink)))}></Button>)
-        }
-        this.setState({directoryLinks: directoryLinks})
-        var mp4 = tables[1].getElementsByClassName('mp4')
-        var mp4links = []
-        for(let i = 0; i < mp4.length; i++) {
-           let fileName = mp4[i].getElementsByTagName('td')[0].textContent
-           let fileLink = mp4[i].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
-           mp4links.push(<Button key={i} title={fileName} onPress={() => this.playFileFromURL(fileLink)}></Button>)
-        }
-        this.setState({mp4links: mp4links})
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) =>  {
+            let doc = new DOMParser().parseFromString(html,'text/html')
+            var tables = doc.getElementsByTagName('table')
+            var currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36)
+            this.setState({location: currentDirectoryName})
+            var directories = tables[1].getElementsByClassName('dirname')
+            var backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href')
+            this.setState({currentDirectory: <Button title={currentDirectoryName} onPress={() => this.XHR(ip,port,backLink)}></Button>})
+            var directoryLinks = []
+            for(var i = 1; i < directories.length; i++) {
+                let directoryName = directories[i].textContent
+                let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href')
+                directoryLinks.push(<Button key={i} title={"/" + directoryName + "/"} onPress={() => this.XHR(ip,port,directoryLink)}></Button>)
+            }
+            this.setState({directoryLinks: directoryLinks})
+            var fileLinks = []
+            var fileExtensions= JSON.parse(extensions)
+            /*  for(let i = 0; i < fileExtensions.length; i++) {
+                  let filesByExtension = tables[1].getElementsByClassName(fileExtensions[i])
+                  for(let k = 0; k < filesByExtension.length; k++) {
+                      let fileName = filesByExtension[k].getElementsByTagName('td')[0].textContent
+                      let fileLink = filesByExtension[k].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
+                      fileLinks.push(<Button key={k} title={fileName} onPress={() => this.playFileFromURL(fileLink)}></Button>)
+                  }
+              } */
+            var filesAndDirectories = doc.getElementsByTagName('tr')
+            for(let j = 2; j < filesAndDirectories.length; j++) {
+                if (fileExtensions.includes(filesAndDirectories[j].getAttribute('class'))) {
+                    let fileName = filesAndDirectories[j].getElementsByTagName('td')[0].textContent
+                    let fileLink = filesAndDirectories[j].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
+                    fileLinks.push(<Button key={j} title={fileName} onPress={() => this.playFileFromURL(ip, port, fileLink)}></Button>)
+                }
+            }
+            this.setState({fileLinks: fileLinks})
+        })))
     }
 
     renderButtons() {
@@ -558,7 +602,7 @@ export class Directory extends Component {
 
     render() {
         return(
-            <ScrollView style={{flex: 1, backgroundColor: 'powderblue'}}>{this.state.currentDirectory}{this.state.directoryLinks}{this.state.mp4links}</ScrollView>
+            <ScrollView style={{flex: 1, backgroundColor: 'powderblue'}}>{this.state.currentDirectory}{this.state.directoryLinks}{this.state.fileLinks}</ScrollView>
         )
 
     }

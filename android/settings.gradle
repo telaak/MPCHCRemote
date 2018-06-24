@@ -1,3 +1,3 @@
-rootProject.name = 'MPCHCRemote2'
+rootProject.name = 'MPCHCRemote'
 
 include ':app'
