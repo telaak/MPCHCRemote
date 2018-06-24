@@ -12,7 +12,8 @@ import {
     AsyncStorage,
     ScrollView,
     FlatList,
-    KeyboardAvoidingView
+    KeyboardAvoidingView,
+	RefreshControl
 } from 'react-native'
 import Swiper from 'react-native-swiper';
 
@@ -531,7 +532,9 @@ export class Directory extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            searchBar : "",
+			refreshing: false,
+			currentDirectoryLink: "",
+            searchBar: "",
             fileLinks: [],
             directoryLinks: [],
             currentDirectory: <Button title={'Connect'} onPress={() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))}}/>
@@ -569,7 +572,8 @@ export class Directory extends Component {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) =>  {
             let doc = new DOMParser().parseFromString(html,'text/html');
             const tables = doc.getElementsByTagName('table');
-            const currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36).replace(/\s/g, '');
+            let currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36)
+			currentDirectoryName = currentDirectoryName.slice(0,-21)
             const directories = tables[1].getElementsByClassName('dirname');
             const backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href');
             this.setState({currentDirectory: <Button title={".."} onPress={() => this.XHR(ip,port,backLink)}/>});
@@ -594,6 +598,12 @@ export class Directory extends Component {
             this.setState({fileLinks: fileLinks})
         })))
     }
+	
+	_onRefresh() {
+		this.setState({refreshing: true});
+		this.XHR('192.168.10.60','13579','/browser.html?path=' + this.state.searchBar)
+		this.setState({refreshing: false});
+    }
 
     render() {
         return(
@@ -602,8 +612,8 @@ export class Directory extends Component {
                     <TextInput underlineColorAndroid="transparent" autoCorrect={false} value={this.state.searchBar} onChangeText={(text) => this.setState({searchBar: text})} onEndEditing={() => {
                         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html?path=" +this.state.searchBar)))}}/>
                 </View>
-                <View style={{flex: 0, flexShrink: 1}}>
-                    <ScrollView>
+                <View style={{flex: 0, flexShrink: 1, flexGrow: 1}}>
+                    <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing}onRefresh={() => {this._onRefresh()}}/>}>
                         {this.state.currentDirectory}{this.state.directoryLinks}{this.state.fileLinks}
                     </ScrollView>
                 </View>
