@@ -1,4 +1,5 @@
 {
-  "name": "MPCHCRemote",
-  "displayName": "MPCHCRemote"
+  "expo": {
+    "sdkVersion": "27.0.0"
+  }
 }

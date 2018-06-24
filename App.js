@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import Exponent from 'expo'
 import {
     View,
     StatusBar,
@@ -10,7 +11,8 @@ import {
     TextInput,
     AsyncStorage,
     ScrollView,
-    FlatList
+    FlatList,
+    KeyboardAvoidingView
 } from 'react-native'
 import Swiper from 'react-native-swiper';
 
@@ -30,6 +32,7 @@ const styles = {
     },
     container: {
         flex: 1,
+		marginTop: Exponent.Constants.statusBarHeight
     },
 
     imgBackground: {
@@ -360,8 +363,8 @@ export class Remote extends Component {
     render() {
         return(
             <View style={{flex: 1}}>
-              <View style={{flex: 1, backgroundColor: 'green'}}>
-                <View style={{flex: 1,backgroundColor: "yellow"}}>
+              <View style={{flex: 1, backgroundColor: 'powderblue'}}>
+                <View style={{flex: 1,backgroundColor: "powderblue"}}>
                   <View style={{flex: 1, alignItems: 'center'}}>
                       <ScrollView ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
                           <Text style={styles.text}>{this.state.file}</Text>
@@ -378,7 +381,7 @@ export class Remote extends Component {
                 </View>
               </View>
               <View style={{flex: 1}}>
-                <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'red'}}>
+                <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'powderblue'}}>
                   <this.UIButton text={'⏯'} command={commands.PlayPause}/>
                   <this.UIButton text={'■'} command={commands.Stop}/>
                   <this.UIButton text={'Full Screen'} command={commands.FullScreen}/>
@@ -391,7 +394,7 @@ export class Remote extends Component {
                     <Text style={styles.text}>{this.state.volumelevelclamped}</Text>
                   </View>
                 </View>
-                <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'steelblue'}}>
+                <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'powderblue'}}>
                   <this.UIButton text={'⏮'} command={commands.Previous}/>
                   <this.UIButton text={'◀◀'} command={commands.DecreaseRate}/>
                   <this.UIButton text={'▶▶'} command={commands.IncreaseRate}/>
@@ -528,6 +531,7 @@ export class Directory extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            searchBar : "",
             fileLinks: [],
             directoryLinks: [],
             currentDirectory: <Button title={'Connect'} onPress={() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))}}/>
@@ -565,10 +569,11 @@ export class Directory extends Component {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) =>  {
             let doc = new DOMParser().parseFromString(html,'text/html');
             const tables = doc.getElementsByTagName('table');
-            const currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36);
+            const currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36).replace(/\s/g, '');
             const directories = tables[1].getElementsByClassName('dirname');
             const backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href');
-            this.setState({currentDirectory: <Button title={currentDirectoryName} onPress={() => this.XHR(ip,port,backLink)}/>});
+            this.setState({currentDirectory: <Button title={".."} onPress={() => this.XHR(ip,port,backLink)}/>});
+            this.setState({searchBar: currentDirectoryName})
             const directoryLinks = [];
             for(let i = 1; i < directories.length; i++) {
                 let directoryName = directories[i].textContent;
@@ -592,7 +597,18 @@ export class Directory extends Component {
 
     render() {
         return(
-            <ScrollView style={{flex: 1, backgroundColor: 'powderblue'}}>{this.state.currentDirectory}{this.state.directoryLinks}{this.state.fileLinks}</ScrollView>
+            <KeyboardAvoidingView style={{flex: 1, backgroundColor: '#2196F3'}}>
+                <View style={{flex: 0, backgroundColor: 'white'}}>
+                    <TextInput underlineColorAndroid="transparent" autoCorrect={false} value={this.state.searchBar} onChangeText={(text) => this.setState({searchBar: text})} onEndEditing={() => {
+                        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html?path=" +this.state.searchBar)))}}/>
+                </View>
+                <View style={{flex: 0, flexShrink: 1}}>
+                    <ScrollView>
+                        {this.state.currentDirectory}{this.state.directoryLinks}{this.state.fileLinks}
+                    </ScrollView>
+                </View>
+            </KeyboardAvoidingView>
+
         )
 
     }
