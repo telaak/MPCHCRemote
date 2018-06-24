@@ -1,13 +1,11 @@
 import React, { Component } from 'react'
 import {
     View,
-    Image,
     StatusBar,
     Dimensions,
     Text,
     Button,
     Slider,
-    WebView,
     TouchableOpacity,
     TextInput,
     AsyncStorage,
@@ -50,7 +48,7 @@ const styles = {
         fontSize: 30,
         fontWeight: 'bold'
     }
-}
+};
 
 const commands = {
     OpenFile: 800,
@@ -236,10 +234,11 @@ const commands = {
     EDLSetOut: 848,
     EDLNewclip: 849,
     EDLSave: 860,
-}
+};
 
 export class Remote extends Component {
     seeking: false;
+    settingVolume: false;
     constructor(props) {
         super(props);
         this.state = {
@@ -276,7 +275,7 @@ export class Remote extends Component {
     }
 
     XHR(ip,port) {
-        var request = new XMLHttpRequest();
+        const request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
                 return;
@@ -298,7 +297,7 @@ export class Remote extends Component {
         fetch('http://' + ip + ':' + port + '/variables.html')
             .then((res) => res.text())
             .then((text)=>{
-                let doc = new DOMParser().parseFromString(text,'text/html')
+                let doc = new DOMParser().parseFromString(text,'text/html');
                 this.setState({
                     file: doc.getElementById('file').textContent,
                     filepatharg: doc.getElementById('filepatharg').textContent,
@@ -320,9 +319,11 @@ export class Remote extends Component {
                     //snapshot: {uri: 'http://192.168.10.60:13579/snapshot.jpg?' + Math.random()}
                 });
                 if(!this.seeking) {
-                    this.setState({position: parseInt(doc.getElementById('position').textContent)})
-                    this.setState({positionstring: doc.getElementById('positionstring').textContent})
-                    this.setState({volumelevel: parseInt(doc.getElementById('volumelevel').textContent)})
+                    this.setState({position: parseInt(doc.getElementById('position').textContent)});
+                    this.setState({positionstring: doc.getElementById('positionstring').textContent});
+                }
+                if(!this.settingVolume) {
+                    this.setState({volumelevel: parseInt(doc.getElementById('volumelevel').textContent)});
                     this.setState({volumelevelclamped: this.state.volumelevel})
                 }
             });
@@ -362,7 +363,9 @@ export class Remote extends Component {
               <View style={{flex: 1, backgroundColor: 'green'}}>
                 <View style={{flex: 1,backgroundColor: "yellow"}}>
                   <View style={{flex: 1, alignItems: 'center'}}>
-                    <Text numberOfLines={1} ellipsizeMode={'tail'} style={styles.text}>{this.state.file}</Text>
+                      <ScrollView ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
+                          <Text style={styles.text}>{this.state.file}</Text>
+                      </ScrollView>
                   </View>
                   <View style={{flex: 1}}>
                       <this.SeekBar/>
@@ -376,9 +379,8 @@ export class Remote extends Component {
               </View>
               <View style={{flex: 1}}>
                 <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'red'}}>
-                  <this.UIButton text={'Play'} command={commands.Play}/>
-                  <this.UIButton text={'Pause'} command={commands.Pause}/>
-                  <this.UIButton text={'Stop'} command={commands.Stop}/>
+                  <this.UIButton text={'⏯'} command={commands.PlayPause}/>
+                  <this.UIButton text={'■'} command={commands.Stop}/>
                   <this.UIButton text={'Full Screen'} command={commands.FullScreen}/>
                 </View>
                 <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'powderblue'}}>
@@ -391,8 +393,8 @@ export class Remote extends Component {
                 </View>
                 <View style={{flex: 1, flexDirection: 'row', backgroundColor: 'steelblue'}}>
                   <this.UIButton text={'⏮'} command={commands.Previous}/>
-                  <this.UIButton text={'◀'} command={commands.DecreaseRate}/>
-                  <this.UIButton text={'▶'} command={commands.IncreaseRate}/>
+                  <this.UIButton text={'◀◀'} command={commands.DecreaseRate}/>
+                  <this.UIButton text={'▶▶'} command={commands.IncreaseRate}/>
                   <this.UIButton text={'⏭'} command={commands.Next}/>
                 </View>
               </View>
@@ -406,16 +408,16 @@ export class Remote extends Component {
                        step={1}
                        maximumValue={100}
                        onValueChange={(value) => {
-                           this.seeking = true;
-                           clearTimeout(this.timeOut)
-                           this.setState({volumelevelclamped: value})
+                           this.settingVolume = true;
+                           clearTimeout(this.timeOutVolume);
+                           this.setState({volumelevelclamped: value});
                            this.HTTPPostRequest("-2","volume",value)
                        }}
                        onSlidingComplete={(value) => {
-                           clearTimeout(this.timeOut)
-                           this.setState({volumelevel: value})
-                           this.timeOut = setTimeout(() => this.seeking = false, 1250);}}/>)
-    }
+                           clearTimeout(this.timeOutVolume);
+                           this.setState({volumelevel: value});
+                           this.timeOutVolume = setTimeout(() => this.settingVolume = false, 1250);}}/>)
+    };
 
     SeekBar = props => {
         return(<Slider style={{height: "100%"}}
@@ -423,16 +425,16 @@ export class Remote extends Component {
                        maximumValue={this.state.duration}
                        onValueChange={(value) => {
                            this.seeking = true;
-                           clearTimeout(this.timeOut)
+                           clearTimeout(this.timeOut);
                            this.setState({positionstring: this.convertMillisToTime(value)});
                            this.HTTPPostRequest("-1","position",this.convertMillisToTime(value));
                        }}
                        onSlidingComplete={(value) => {
-                           clearTimeout(this.timeOut)
+                           clearTimeout(this.timeOut);
                            this.setState({position: value});
                            this.setState({positionstring: this.convertMillisToTime(value)});
                            this.timeOut = setTimeout(() => this.seeking = false, 1250);}}/>)
-    }
+    };
 
     UIButton = props => {
         return(
@@ -455,7 +457,7 @@ export class Remote extends Component {
 
 export class Settings extends Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
             ip: "",
             port: "13579",
@@ -465,8 +467,8 @@ export class Settings extends Component {
     }
 
     componentDidMount() {
-        AsyncStorage.getItem('IP').then((value) => this.setState({ 'ip': value }))
-        AsyncStorage.getItem('PORT').then((value) => this.setState({ 'port': value }))
+        AsyncStorage.getItem('IP').then((value) => this.setState({ 'ip': value }));
+        AsyncStorage.getItem('PORT').then((value) => this.setState({ 'port': value }));
         AsyncStorage.getItem('EXTENSIONS').then((value) => {if(value == null){AsyncStorage.setItem('EXTENSIONS',JSON.stringify(this.state.extensions))}
         else {
             this.setState({extensions: JSON.parse(value)})
@@ -476,7 +478,7 @@ export class Settings extends Component {
     render() {
         return(
             <View style={{flex: 1, backgroundColor: 'powderblue'}}>
-              <View style={{flex: 1, flexDirection: 'row'}}>
+              <View style={{flexDirection: 'row'}}>
                 <View style={{flex: 1}}>
                   <TextInput
                       style={{height: 40}}
@@ -490,30 +492,32 @@ export class Settings extends Component {
                       value={this.state.port}/>
                 </View>
               </View>
-                <View style={{flex: 1, flexDirection: 'row'}}>
-                    <View style={{flex: 1}}>
-                        <TextInput style={{height: 40}} value={this.state.extension} onChangeText={(text) => {this.setState({extension: text})}}></TextInput>
-                    </View>
-                    <View style={{flex: 1}}>
-                        <Button title={"Add extension"} onPress={() => {
-                            AsyncStorage.getItem('EXTENSIONS').then((value) => {
-                                let parsedArray = JSON.parse(value)
-                                if(!parsedArray.includes(this.state.extension)) {
-                                    parsedArray.push(this.state.extension)
-                                    AsyncStorage.setItem('EXTENSIONS',JSON.stringify(parsedArray)).then(this.setState({extensions: parsedArray}))
-                                }
-                            })
-                        }}>
-                        </Button>
-                    </View>
-                </View>
                 <View style={{flex: 1}}>
-                    <FlatList keyExtractor={(item) => item.indexOf().toString()} extraData={this.state} data={this.state.extensions} renderItem={({item,index}) => <Button onPress={() =>{
-                        let splicedArray = this.state.extensions
-                        splicedArray.splice(index,1)
-                        this.setState({extensions: splicedArray})
-                        AsyncStorage.setItem('EXTENSIONS',JSON.stringify(splicedArray))
-                    }} title={item}></Button>}></FlatList>
+                    <View style={{flexDirection: 'row'}}>
+                        <View style={{flex: 1}}>
+                            <TextInput style={{height: 40}} value={this.state.extension} onChangeText={(text) => {this.setState({extension: text})}}/>
+                        </View>
+                        <View style={{flex: 1}}>
+                            <Button title={"Add extension"} onPress={() => {
+                                AsyncStorage.getItem('EXTENSIONS').then((value) => {
+                                    let parsedArray = JSON.parse(value);
+                                    if(!parsedArray.includes(this.state.extension)) {
+                                        parsedArray.push(this.state.extension);
+                                        AsyncStorage.setItem('EXTENSIONS',JSON.stringify(parsedArray)).then(this.setState({extensions: parsedArray}))
+                                    }
+                                })
+                            }}>
+                            </Button>
+                        </View>
+                    </View>
+                    <View style={{flex: 1}}>
+                        <FlatList keyExtractor={(item,index) => index.toString()} extraData={this.state} data={this.state.extensions} renderItem={({item,index}) => <Button onPress={() =>{
+                            let splicedArray = this.state.extensions;
+                            splicedArray.splice(index,1);
+                            this.setState({extensions: splicedArray});
+                            AsyncStorage.setItem('EXTENSIONS',JSON.stringify(splicedArray))
+                        }} title={item}/>}/>
+                    </View>
                 </View>
             </View>
         )
@@ -522,12 +526,11 @@ export class Settings extends Component {
 
 export class Directory extends Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
-            location: "",
             fileLinks: [],
             directoryLinks: [],
-            currentDirectory: <Button title={'Connect'} onPress={() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))}}></Button>
+            currentDirectory: <Button title={'Connect'} onPress={() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))}}/>
         }
     }
 
@@ -540,7 +543,7 @@ export class Directory extends Component {
     }
 
     XHR(ip, port, url) {
-        var request = new XMLHttpRequest();
+        const request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
                 return;
@@ -560,44 +563,31 @@ export class Directory extends Component {
 
     parseHTML(html) {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) =>  {
-            let doc = new DOMParser().parseFromString(html,'text/html')
-            var tables = doc.getElementsByTagName('table')
-            var currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36)
-            this.setState({location: currentDirectoryName})
-            var directories = tables[1].getElementsByClassName('dirname')
-            var backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href')
-            this.setState({currentDirectory: <Button title={currentDirectoryName} onPress={() => this.XHR(ip,port,backLink)}></Button>})
-            var directoryLinks = []
-            for(var i = 1; i < directories.length; i++) {
-                let directoryName = directories[i].textContent
-                let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href')
-                directoryLinks.push(<Button key={i} title={"/" + directoryName + "/"} onPress={() => this.XHR(ip,port,directoryLink)}></Button>)
+            let doc = new DOMParser().parseFromString(html,'text/html');
+            const tables = doc.getElementsByTagName('table');
+            const currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36);
+            const directories = tables[1].getElementsByClassName('dirname');
+            const backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href');
+            this.setState({currentDirectory: <Button title={currentDirectoryName} onPress={() => this.XHR(ip,port,backLink)}/>});
+            const directoryLinks = [];
+            for(let i = 1; i < directories.length; i++) {
+                let directoryName = directories[i].textContent;
+                let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href');
+                directoryLinks.push(<Button key={i} title={"/" + directoryName + "/"} onPress={() => this.XHR(ip,port,directoryLink)}/>)
             }
-            this.setState({directoryLinks: directoryLinks})
-            var fileLinks = []
-            var fileExtensions= JSON.parse(extensions)
-            /*  for(let i = 0; i < fileExtensions.length; i++) {
-                  let filesByExtension = tables[1].getElementsByClassName(fileExtensions[i])
-                  for(let k = 0; k < filesByExtension.length; k++) {
-                      let fileName = filesByExtension[k].getElementsByTagName('td')[0].textContent
-                      let fileLink = filesByExtension[k].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
-                      fileLinks.push(<Button key={k} title={fileName} onPress={() => this.playFileFromURL(fileLink)}></Button>)
-                  }
-              } */
-            var filesAndDirectories = doc.getElementsByTagName('tr')
+            this.setState({directoryLinks: directoryLinks});
+            const fileLinks = [];
+            const fileExtensions = JSON.parse(extensions);
+            const filesAndDirectories = doc.getElementsByTagName('tr');
             for(let j = 2; j < filesAndDirectories.length; j++) {
                 if (fileExtensions.includes(filesAndDirectories[j].getAttribute('class'))) {
-                    let fileName = filesAndDirectories[j].getElementsByTagName('td')[0].textContent
-                    let fileLink = filesAndDirectories[j].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href')
-                    fileLinks.push(<Button key={j} title={fileName} onPress={() => this.playFileFromURL(ip, port, fileLink)}></Button>)
+                    let fileName = filesAndDirectories[j].getElementsByTagName('td')[0].textContent;
+                    let fileLink = filesAndDirectories[j].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href');
+                    fileLinks.push(<Button key={j} title={fileName} onPress={() => this.playFileFromURL(ip, port, fileLink)}/>)
                 }
             }
             this.setState({fileLinks: fileLinks})
         })))
-    }
-
-    renderButtons() {
-
     }
 
     render() {
@@ -613,10 +603,6 @@ export default class extends Component {
         return (
             <View style={styles.container}>
               <StatusBar barStyle='light-content' />
-              <Image
-                  source={require('./img/bg.jpg')}
-                  style={styles.imgBackground}
-              />
               <Swiper style={styles.wrapper}
                       dot={<View style={{backgroundColor: 'rgba(255,255,255,.3)', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7}} />}
                       activeDot={<View style={{backgroundColor: '#fff', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7}} />}
