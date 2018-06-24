@@ -533,7 +533,6 @@ export class Directory extends Component {
         super(props);
         this.state = {
 			refreshing: false,
-			currentDirectoryLink: "",
             searchBar: "",
             fileLinks: [],
             directoryLinks: [],
@@ -569,6 +568,7 @@ export class Directory extends Component {
     }
 
     parseHTML(html) {
+		this.setState({refreshing: true});
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) =>  {
             let doc = new DOMParser().parseFromString(html,'text/html');
             const tables = doc.getElementsByTagName('table');
@@ -596,13 +596,12 @@ export class Directory extends Component {
                 }
             }
             this.setState({fileLinks: fileLinks})
+			this.setState({refreshing: false});
         })))
     }
 	
 	_onRefresh() {
-		this.setState({refreshing: true});
-		this.XHR('192.168.10.60','13579','/browser.html?path=' + this.state.searchBar)
-		this.setState({refreshing: false});
+		AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => {this.XHR(ip,port,'/browser.html?path=' + this.state.searchBar)}))
     }
 
     render() {
@@ -613,7 +612,7 @@ export class Directory extends Component {
                         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html?path=" +this.state.searchBar)))}}/>
                 </View>
                 <View style={{flex: 0, flexShrink: 1, flexGrow: 1}}>
-                    <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing}onRefresh={() => {this._onRefresh()}}/>}>
+                    <ScrollView ref={(ref) => this.flatListRef = ref} onContentSizeChange={(width, height) => this.flatListRef.scrollTo({x: 0, y: 0, animated: true})} refreshControl={<RefreshControl refreshing={this.state.refreshing}onRefresh={() => {this._onRefresh()}}/>}>
                         {this.state.currentDirectory}{this.state.directoryLinks}{this.state.fileLinks}
                     </ScrollView>
                 </View>
