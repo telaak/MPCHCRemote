@@ -23,6 +23,7 @@
     "react": "16.3.1",
     "react-native": "~0.55.2",
     "react-native-html-parser": "0.0.5",
-    "react-native-swiper": "^1.5.13"
+    "react-native-swiper": "^1.5.13",
+    "react-native-vector-icons": "^4.6.0"
   }
 }

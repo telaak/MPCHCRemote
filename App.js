@@ -13,10 +13,13 @@ import {
     ScrollView,
     FlatList,
     KeyboardAvoidingView,
-	RefreshControl
+    RefreshControl,
+    BackHandler
 } from 'react-native'
 import Swiper from 'react-native-swiper';
 
+import {MaterialCommunityIcons} from '@expo/vector-icons';
+import {FontAwesome} from '@expo/vector-icons';
 
 const DOMParser = require('react-native-html-parser').DOMParser;
 
@@ -32,8 +35,7 @@ const styles = {
         backgroundColor: 'transparent',
     },
     container: {
-        flex: 1,
-		marginTop: Exponent.Constants.statusBarHeight
+        flex: 1
     },
 
     imgBackground: {
@@ -241,8 +243,8 @@ const commands = {
 };
 
 export class Remote extends Component {
-    seeking: false;
-    settingVolume: false;
+    seeking = false;
+    settingVolume = false;
     constructor(props) {
         super(props);
         this.state = {
@@ -364,7 +366,7 @@ export class Remote extends Component {
     render() {
         return(
             <View style={{flex: 1}}>
-              <View style={{flex: 1, backgroundColor: 'powderblue'}}>
+              <View style={{flex: 1, backgroundColor: '#4caf50'}}>
                 <View style={{flex: 1,backgroundColor: "powderblue"}}>
                   <View style={{flex: 1, alignItems: 'center'}}>
                       <ScrollView ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
@@ -483,26 +485,28 @@ export class Settings extends Component {
         return(
             <View style={{flex: 1, backgroundColor: 'powderblue'}}>
               <View style={{flexDirection: 'row'}}>
-                <View style={{flex: 1}}>
+                <View style={{flex: 1, backgroundColor: 'white', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderRadius: 10, borderWidth: 1}}>
                   <TextInput
-                      style={{height: 40}}
+                      underlineColorAndroid="transparent"
+                      style={{height: 40, marginLeft: 5}}
                       onChangeText={(text) =>  AsyncStorage.setItem('IP', text).then(this.setState({ip: text}))}
                       value={this.state.ip}/>
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{flex: 1, backgroundColor: 'white', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderRadius: 10, borderWidth: 1}}>
                   <TextInput
-                      style={{height: 40}}
+                      underlineColorAndroid="transparent"
+                      style={{height: 40, marginLeft: 5}}
                       onChangeText={(text) =>  AsyncStorage.setItem('PORT', text).then(this.setState({port: text}))}
                       value={this.state.port}/>
                 </View>
               </View>
                 <View style={{flex: 1}}>
                     <View style={{flexDirection: 'row'}}>
-                        <View style={{flex: 1}}>
-                            <TextInput style={{height: 40}} value={this.state.extension} onChangeText={(text) => {this.setState({extension: text})}}/>
+                        <View style={{flex: 1, backgroundColor: 'white', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderRadius: 10, borderWidth: 1}}>
+                            <TextInput underlineColorAndroid="transparent" style={{height: 40, paddingLeft: 5}} value={this.state.extension} onChangeText={(text) => {this.setState({extension: text})}}/>
                         </View>
-                        <View style={{flex: 1}}>
-                            <Button title={"Add extension"} onPress={() => {
+                        <View style={{flex: 1, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderWidth: 1, justifyContent: 'center', alignItems: 'center'}}>
+                            <TouchableOpacity onPress={() => {
                                 AsyncStorage.getItem('EXTENSIONS').then((value) => {
                                     let parsedArray = JSON.parse(value);
                                     if(!parsedArray.includes(this.state.extension)) {
@@ -511,10 +515,11 @@ export class Settings extends Component {
                                     }
                                 })
                             }}>
-                            </Button>
+                                <Text style={{color: 'white'}}>Add extension</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
-                    <View style={{flex: 1}}>
+                    <View style={{flex: 1, borderTopWidth: 1, marginTop: 10}}>
                         <FlatList keyExtractor={(item,index) => index.toString()} extraData={this.state} data={this.state.extensions} renderItem={({item,index}) => <Button onPress={() =>{
                             let splicedArray = this.state.extensions;
                             splicedArray.splice(index,1);
@@ -534,6 +539,7 @@ export class Directory extends Component {
         this.state = {
 			refreshing: false,
             searchBar: "",
+            backLink: "",
             fileLinks: [],
             directoryLinks: [],
             currentDirectory: <Button title={'Connect'} onPress={() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html")))}}/>
@@ -567,6 +573,12 @@ export class Directory extends Component {
         }, 125);
     }
 
+    goBack() {
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => {
+            this.XHR(ip,port,this.state.backLink)
+        }))
+    }
+
     parseHTML(html) {
 		this.setState({refreshing: true});
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) =>  {
@@ -576,13 +588,27 @@ export class Directory extends Component {
 			currentDirectoryName = currentDirectoryName.slice(0,-21)
             const directories = tables[1].getElementsByClassName('dirname');
             const backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href');
+            this.setState({backLink: backLink});
             this.setState({currentDirectory: <Button title={".."} onPress={() => this.XHR(ip,port,backLink)}/>});
             this.setState({searchBar: currentDirectoryName})
             const directoryLinks = [];
             for(let i = 1; i < directories.length; i++) {
                 let directoryName = directories[i].textContent;
                 let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href');
-                directoryLinks.push(<Button key={i} title={"/" + directoryName + "/"} onPress={() => this.XHR(ip,port,directoryLink)}/>)
+                directoryLinks.push(
+                                     <View key={i} style={{flexDirection: 'row', height: 50, marginLeft: 5, marginRight: 5, borderRadius: 10, borderBottomWidth: 1, borderBottomColor: '#0000001F'}}>
+                                        <View style={{marginLeft: 5, flex: 7, flexDirection: 'column',justifyContent: 'center'}}>
+                                            <Text style={{color: '#000000B3', fontWeight: 'bold'}}>
+                                                {directoryName}
+                                            </Text>
+                                        </View>
+                                        <TouchableOpacity style={{paddingBottom: 0}} onPress={() => this.XHR(ip, port, directoryLink)}>
+                                            <View style={{width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center'}}>
+                                                <MaterialCommunityIcons name="folder-open" size={32} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
+                     </View>
+                )
             }
             this.setState({directoryLinks: directoryLinks});
             const fileLinks = [];
@@ -592,11 +618,25 @@ export class Directory extends Component {
                 if (fileExtensions.includes(filesAndDirectories[j].getAttribute('class'))) {
                     let fileName = filesAndDirectories[j].getElementsByTagName('td')[0].textContent;
                     let fileLink = filesAndDirectories[j].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href');
-                    fileLinks.push(<Button key={j} title={fileName} onPress={() => this.playFileFromURL(ip, port, fileLink)}/>)
+                    fileLinks.push(
+                                    <View key={j} style={{flexDirection: 'row', height: 50, marginLeft: 5, marginRight: 5, borderRadius: 10, borderBottomWidth: 1, borderBottomColor: '#0000001F'}}>
+                                        <View style={{marginLeft: 5, flex: 7, flexDirection: 'column',justifyContent: 'center'}}>
+                                            <Text style={{color: '#000000B3', fontWeight: 'bold'}}>
+                                                {fileName}
+                                            </Text>
+                                        </View>
+                                            <TouchableOpacity onPress={() => this.playFileFromURL(ip, port, fileLink)}>
+                                                <View style={{width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderRadius: 20, borderWidth: 1, justifyContent: 'center', alignItems: 'center'}}>
+                                                        <FontAwesome name="play-circle" size={32} color="white"/>
+                                                  </View>
+                                            </TouchableOpacity>
+                                    </View>
+                                    )
                 }
             }
             this.setState({fileLinks: fileLinks})
-			this.setState({refreshing: false});
+            this.setState({refreshing: false});
+            this.flatListRef.scrollTo({x: 0, y: 0, animated: true})
         })))
     }
 	
@@ -606,40 +646,59 @@ export class Directory extends Component {
 
     render() {
         return(
-            <KeyboardAvoidingView style={{flex: 1, backgroundColor: '#2196F3'}}>
-                <View style={{flex: 0, backgroundColor: 'white'}}>
-                    <TextInput underlineColorAndroid="transparent" autoCorrect={false} value={this.state.searchBar} onChangeText={(text) => this.setState({searchBar: text})} onEndEditing={() => {
+            <KeyboardAvoidingView style={{flex: 1, backgroundColor: '#fafafa'}}>
+            <View style={{backgroundColor: '#2196F3', height: 40, elevation: 5, borderBottomWidth: 1}}>
+                <View style={{flex: 0, backgroundColor: 'white', marginTop: 5, marginLeft: 5, marginRight:5, elevation: 5, borderRadius: 10, borderWidth: 1}}>
+                    <TextInput style={{marginLeft: 5}} underlineColorAndroid="transparent" autoCorrect={false} value={this.state.searchBar} onChangeText={(text) => this.setState({searchBar: text})} onEndEditing={() => {
                         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip,port,"/browser.html?path=" +this.state.searchBar)))}}/>
                 </View>
+            </View>
                 <View style={{flex: 0, flexShrink: 1, flexGrow: 1}}>
-                    <ScrollView ref={(ref) => this.flatListRef = ref} onContentSizeChange={(width, height) => this.flatListRef.scrollTo({x: 0, y: 0, animated: true})} refreshControl={<RefreshControl refreshing={this.state.refreshing}onRefresh={() => {this._onRefresh()}}/>}>
-                        {this.state.currentDirectory}{this.state.directoryLinks}{this.state.fileLinks}
+                    <ScrollView ref={(ref) => this.flatListRef = ref}  refreshControl={<RefreshControl refreshing={this.state.refreshing}onRefresh={() => {this._onRefresh()}}/>}>
+                        {this.state.directoryLinks}{this.state.fileLinks}
                     </ScrollView>
                 </View>
             </KeyboardAvoidingView>
-
         )
-
     }
 }
 
 export default class extends Component {
-    render () {
+    constructor(props) {
+        super(props)
+        this.state = {
+            screen: 0
+        }
+    }
+
+    componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            if (this.state.screen == 1) {
+              this.refs.directory.goBack()
+              return true;
+            }
+            return false;
+          });
+    }
+
+    render() {
         return (
             <View style={styles.container}>
-              <StatusBar barStyle='light-content' />
+            <View style={{height: Exponent.Constants.statusBarHeight, backgroundColor: '#2196F3'}}></View>
+              <StatusBar barStyle='light-content'/>
               <Swiper style={styles.wrapper}
-                      dot={<View style={{backgroundColor: 'rgba(255,255,255,.3)', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7}} />}
-                      activeDot={<View style={{backgroundColor: '#fff', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7}} />}
+                      dot={<View style={{backgroundColor: 'rgb(255,255,255)', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7, borderRadius: 6.5, borderWidth: 1}} />}
+                      activeDot={<View style={{backgroundColor: '#2196F3', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7, borderRadius: 6.5, borderWidth: 1}} />}
                       paginationStyle={{
                           bottom: 20
                       }}
-                      loop={false}>
+                      loop={false}
+                      onIndexChanged={(index) => {this.setState({screen: index})}}>
                 <View style={styles.slide}>
                   <Remote />
                 </View>
                 <View style={styles.slide}>
-                  <Directory />
+                  <Directory ref='directory' />
                 </View>
                 <View style={styles.slide}>
                   <Settings />
