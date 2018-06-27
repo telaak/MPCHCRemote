@@ -15,12 +15,16 @@ import {
     KeyboardAvoidingView,
     RefreshControl,
     BackHandler,
-    ToolbarAndroid
+    Modal,
+    TouchableHighlight
 } from 'react-native'
 import Swiper from 'react-native-swiper';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
+import { Octicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 
 const DOMParser = require('react-native-html-parser').DOMParser;
 
@@ -266,7 +270,9 @@ export class Remote extends Component {
             playbackrate: 1,
             size: "",
             reloadtime: 0,
-            version: ""
+            version: "",
+            subtitleModalVisible: false,
+            audioModalVisible: false
         }
     }
 
@@ -366,46 +372,301 @@ export class Remote extends Component {
 
     render() {
         return (
-            <View style={{ flex: 1 }}>
-                <View style={{ flex: 1, backgroundColor: '#4caf50' }}>
-                    <View style={{ flex: 1, backgroundColor: "powderblue" }}>
-                        <View style={{ flex: 1, alignItems: 'center' }}>
-                            <ScrollView ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
-                                <Text style={styles.text}>{this.state.file}</Text>
-                            </ScrollView>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <this.SeekBar />
-                        </View>
-                        <View style={{ flex: 1, alignItems: 'center' }}>
-                            <Text style={styles.text}>{this.state.positionstring} / {this.state.durationstring}</Text>
-                        </View>
+            <View style={{ flex: 1, backgroundColor: '#fafafa' }}>
+            <ScrollView>
+                <View style={{}}>
+                    <View style={{ height: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2196f3', borderBottomWidth: 1, elevation: 5 }}>
+                        <ScrollView style={{ backgroundColor: 'white', borderWidth: 1, elevation: 5, borderRadius: 10, margin: 5 }} ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
+                            <View style={{ justifyContent: 'center' }}>
+                                <Text style={{ fontWeight: 'bold', fontSize: 30 }}>{this.state.file}</Text>
+                            </View>
+                        </ScrollView>
                     </View>
-                    <View style={{ flex: 1, alignItems: 'center' }}>
+                    <View style={{ height: 40, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 30 }}>{this.state.positionstring} / {this.state.durationstring}</Text>
+                    </View>
+                    <View style={{ height: 70, borderBottomWidth: 1 }}>
+                        <this.SeekBar />
                     </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: 'powderblue' }}>
-                        <this.UIButton text={'⏯'} command={commands.PlayPause} />
-                        <this.UIButton text={'■'} command={commands.Stop} />
-                        <this.UIButton text={'Full Screen'} command={commands.FullScreen} />
+                <View style={{ height: 50, flexDirection: 'row', borderBottomWidth: 1 }}>
+                    <View style={{ flex: 1, }}>
+                        <this.VolumeSlider />
                     </View>
-                    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: 'powderblue' }}>
-                        <View style={{ flex: 5, }}>
-                            <this.VolumeSlider />
+                    <View style={{ flexShrink: 1, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.VolumeMute) }}>
+                            <View style={{ backgroundColor: '#2196f3', borderWidth: 1, elevation: 5, borderRadius: 10 }}>
+                                <Octicons name={this.state.muted == 1 ? "mute" : "unmute"} size={32} color="white" />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <this.CommandBar />
+                <this.SubtitleModal />
+                <this.AudioModal />
+                <View style={{ flexGrow: 1, flexDirection: 'row', borderBottomWidth: 1 }} >
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                        <View>
+                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayIncrease) }}>
+                                <MaterialCommunityIcons name="plus" size={48} color="black" />
+                            </TouchableOpacity>
                         </View>
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={styles.text}>{this.state.volumelevelclamped}</Text>
+                        <View style={{ flexDirection: 'row' }} >
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevSubtitleTrack) }}>
+                                    <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.OnOffSubtitle) }}>
+                                    <MaterialIcons name="subtitles" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextSubtitleTrack) }}>
+                                    <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View>
+                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayDecrease) }}>
+                                <MaterialCommunityIcons name="minus" size={48} color="black" />
+                            </TouchableOpacity>
                         </View>
                     </View>
-                    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: 'powderblue' }}>
-                        <this.UIButton text={'⏮'} command={commands.Previous} />
-                        <this.UIButton text={'◀◀'} command={commands.DecreaseRate} />
-                        <this.UIButton text={'▶▶'} command={commands.IncreaseRate} />
-                        <this.UIButton text={'⏭'} command={commands.Next} />
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                        <View>
+                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelayAdd10ms) }}>
+                                <MaterialCommunityIcons name="plus" size={48} color="black" />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flexDirection: 'row' }} >
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
+                                    <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.VolumeMute) }}>
+                                    <MaterialIcons name="audiotrack" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
+                                    <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View>
+                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelaySubtract10ms) }}>
+                                <MaterialCommunityIcons name="minus" size={48} color="black" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
+                </View>
+                </ScrollView>
+            </View>
+        )
+    }
+
+    CommandBar = props => {
+        return (
+            <View style={{ height: 50, flexDirection: 'row', borderBottomWidth: 1 }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.Play) }}>
+                        <MaterialCommunityIcons name="play" size={48} color="black" />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.Pause) }}>
+                        <MaterialCommunityIcons name="pause" size={48} color="black" />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.Stop) }}>
+                        <MaterialCommunityIcons name="stop" size={48} color="black" />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.Previous) }}>
+                        <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.Next) }}>
+                        <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.FullScreen) }}>
+                        <Entypo name="resize-full-screen" size={48} color="black" />
+                    </TouchableOpacity>
                 </View>
             </View>
+        )
+    }
+
+    AudioModal = props => {
+        return (
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={this.state.audioModalVisible}
+                onRequestClose={() => {
+                    this.setState({ audioModalVisible: false });
+                }}>
+                <View style={{
+                    flex: 1,
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                    <View style={{
+                        width: 300,
+                        height: 200,
+                        backgroundColor: '#fafafa',
+                        borderWidth: 1,
+                        elevation: 5
+                    }} >
+                        <View style={{ backgroundColor: '#0069c0', borderBottomWidth: 1, elevation: 5 }}>
+                            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 30, color: 'white' }} >Audio options</Text>
+                        </View>
+                        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row' }}>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelaySubtract10ms) }}>
+                                        <MaterialCommunityIcons name="minus" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <MaterialCommunityIcons name="timer" size={48} color="black" />
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelayAdd10ms) }}>
+                                        <MaterialCommunityIcons name="plus" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row' }}>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
+                                        <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <MaterialIcons name="audiotrack" size={48} color="black" />
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextAudioTrack) }}>
+                                        <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row' }}>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.ShiftSubtitleLeft) }}>
+                                        <FontAwesome name="long-arrow-left" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <MaterialIcons name="audiotrack" size={48} color="black" />
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.ShiftSubtitleRight) }}>
+                                        <FontAwesome name="long-arrow-right" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                        </View>
+
+                    </View>
+                </View>
+            </Modal>
+        )
+    }
+
+    SubtitleModal = props => {
+        return (
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={this.state.subtitleModalVisible}
+                onRequestClose={() => {
+                    this.setState({ subtitleModalVisible: false });
+                }}>
+                <View style={{
+                    flex: 1,
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                    <View style={{
+                        width: 300,
+                        height: 200,
+                        backgroundColor: '#fafafa',
+                        borderWidth: 1,
+                        elevation: 5
+                    }} >
+                        <View style={{ backgroundColor: '#0069c0', borderBottomWidth: 1, elevation: 5 }}>
+                            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 30, color: 'white' }} >Subtitle options</Text>
+                        </View>
+                        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row' }}>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayDecrease) }}>
+                                        <MaterialCommunityIcons name="minus" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <MaterialCommunityIcons name="timer" size={48} color="black" />
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayIncrease) }}>
+                                        <MaterialCommunityIcons name="plus" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row' }}>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevSubtitleTrack) }}>
+                                        <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <MaterialIcons name="subtitles" size={48} color="black" />
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextSubtitleTrack) }}>
+                                        <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row' }}>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.ShiftSubtitleLeft) }}>
+                                        <FontAwesome name="long-arrow-left" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <MaterialIcons name="subtitles" size={48} color="black" />
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.ShiftSubtitleRight) }}>
+                                        <FontAwesome name="long-arrow-right" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                        </View>
+
+                    </View>
+                </View>
+            </Modal>
         )
     }
 
@@ -414,6 +675,8 @@ export class Remote extends Component {
             value={this.state.volumelevel}
             step={1}
             maximumValue={100}
+            thumbTintColor={'#2196f3'}
+            minimumTrackTintColor={'#2196f3'}
             onValueChange={(value) => {
                 this.settingVolume = true;
                 clearTimeout(this.timeOutVolume);
@@ -431,6 +694,8 @@ export class Remote extends Component {
         return (<Slider style={{ height: "100%" }}
             value={this.state.position}
             maximumValue={this.state.duration}
+            thumbTintColor={'#2196f3'}
+            minimumTrackTintColor={'#2196f3'}
             onValueChange={(value) => {
                 this.seeking = true;
                 clearTimeout(this.timeOut);
@@ -448,7 +713,8 @@ export class Remote extends Component {
     UIButton = props => {
         return (
             <TouchableOpacity style={{
-                flex: 1,
+                width: 50,
+                height: 50,
                 justifyContent: 'center',
                 alignItems: 'center',
                 backgroundColor: '#00BCD4',
@@ -456,9 +722,6 @@ export class Remote extends Component {
                 borderColor: '#fff',
                 margin: 5
             }} onPress={() => this.HTTPPostRequest(props.command)}>
-                <Text style={{
-                    color: '#fff',
-                }}>{props.text}</Text>
             </TouchableOpacity>
         )
     }
@@ -514,7 +777,7 @@ export class Settings extends Component {
                     <View style={{ flex: 1, backgroundColor: 'white', marginTop: 5, marginBottom: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center' }}>
                         <TextInput underlineColorAndroid="transparent" style={{ paddingLeft: 5 }} value={this.state.extension} onChangeText={(text) => { this.setState({ extension: text }) }} />
                     </View>
-                    <TouchableOpacity style={{}} onPress={() => {
+                    <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => {
                         AsyncStorage.getItem('EXTENSIONS').then((value) => {
                             let parsedArray = JSON.parse(value);
                             if (!parsedArray.includes(this.state.extension)) {
@@ -534,12 +797,12 @@ export class Settings extends Component {
                 <View style={{ flexShrink: 1, backgroundColor: '#fafafa' }}>
                     <FlatList keyExtractor={(item, index) => index.toString()} extraData={this.state} data={this.state.extensions.sort()} renderItem={({ item, index }) =>
                         <View key={index} style={{ flexDirection: 'row', height: 50, marginLeft: 5, marginRight: 5, borderRadius: 10, borderBottomWidth: 1, borderBottomColor: '#0000001F' }}>
-                            <View style={{ marginLeft: 5, flex: 7, flexDirection: 'column', justifyContent: 'center' }}>
+                            <View style={{ marginLeft: 5, flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
                                 <Text style={{ color: '#000000B3', fontWeight: 'bold' }}>
                                     {item}
                                 </Text>
                             </View>
-                            <TouchableOpacity style={{ paddingBottom: 0 }} onPress={() => {
+                            <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => {
                                 let splicedArray = this.state.extensions;
                                 splicedArray.splice(index, 1);
                                 this.setState({ extensions: splicedArray }, () => AsyncStorage.setItem('EXTENSIONS', JSON.stringify(splicedArray)));
@@ -623,12 +886,12 @@ export class Directory extends Component {
                 let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href');
                 directoryLinks.push(
                     <View key={i} style={{ flexDirection: 'row', height: 50, marginLeft: 5, marginRight: 5, borderRadius: 10, borderBottomWidth: 1, borderBottomColor: '#0000001F' }}>
-                        <View style={{ marginLeft: 5, flex: 7, flexDirection: 'column', justifyContent: 'center' }}>
+                        <View style={{ marginLeft: 5, flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
                             <Text style={{ color: '#000000B3', fontWeight: 'bold' }}>
                                 {directoryName}
                             </Text>
                         </View>
-                        <TouchableOpacity style={{ paddingBottom: 0 }} onPress={() => this.XHR(ip, port, directoryLink)}>
+                        <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.XHR(ip, port, directoryLink)}>
                             <View style={{ width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' }}>
                                 <MaterialCommunityIcons name="folder-open" size={32} color="white" />
                             </View>
@@ -646,12 +909,12 @@ export class Directory extends Component {
                     let fileLink = filesAndDirectories[j].getElementsByTagName('td')[0].getElementsByTagName('a')[0].getAttribute('href');
                     fileLinks.push(
                         <View key={j} style={{ flexDirection: 'row', height: 50, marginLeft: 5, marginRight: 5, borderRadius: 10, borderBottomWidth: 1, borderBottomColor: '#0000001F' }}>
-                            <View style={{ marginLeft: 5, flex: 7, flexDirection: 'column', justifyContent: 'center' }}>
+                            <View style={{ marginLeft: 5, flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
                                 <Text style={{ color: '#000000B3', fontWeight: 'bold' }}>
                                     {fileName}
                                 </Text>
                             </View>
-                            <TouchableOpacity onPress={() => this.playFileFromURL(ip, port, fileLink)}>
+                            <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.playFileFromURL(ip, port, fileLink)}>
                                 <View style={{ width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 20, borderWidth: 1, justifyContent: 'center', alignItems: 'center' }}>
                                     <FontAwesome name="play-circle" size={32} color="white" />
                                 </View>
