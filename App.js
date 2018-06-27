@@ -402,8 +402,6 @@ export class Remote extends Component {
                         <this.UIButton text={'◀◀'} command={commands.DecreaseRate} />
                         <this.UIButton text={'▶▶'} command={commands.IncreaseRate} />
                         <this.UIButton text={'⏭'} command={commands.Next} />
-
-                        
                     </View>
                 </View>
             </View>
@@ -490,7 +488,7 @@ export class Settings extends Component {
     render() {
         return (
             <View style={{ flex: 1, backgroundColor: '#fafafa' }}>
-                <View style={{ backgroundColor: '#2196F3' }}>
+                <View style={{ backgroundColor: '#2196F3', paddingBottom: 10, borderBottomWidth: 1, elevation: 5}}>
                     <View style={{ flexDirection: 'row', backgroundColor: '#2196F3' }}>
                         <View style={{ flex: 1, backgroundColor: 'white', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1 }}>
                             <TextInput
@@ -510,7 +508,7 @@ export class Settings extends Component {
                         </View>
                     </View>
 
-                    <View style={{ flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1 }}>
+                    <View style={{ flexDirection: 'row'}}>
                         <View style={{ flex: 1, backgroundColor: 'white', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1 }}>
                             <TextInput underlineColorAndroid="transparent" style={{ height: 40, paddingLeft: 5 }} value={this.state.extension} onChangeText={(text) => { this.setState({ extension: text }) }} />
                         </View>
@@ -532,7 +530,7 @@ export class Settings extends Component {
 
 
 
-                <View style={{ flexGrow: 1, backgroundColor: '#fafafa' }}>
+                <View style={{ flexGrow: 1, flexShrink: 1, backgroundColor: '#fafafa' }}>
                     <FlatList keyExtractor={(item, index) => index.toString()} extraData={this.state} data={this.state.extensions.sort()} renderItem={({ item, index }) =>
                         <View key={index} style={{ flexDirection: 'row', height: 50, marginLeft: 5, marginRight: 5, borderRadius: 10, borderBottomWidth: 1, borderBottomColor: '#0000001F' }}>
                             <View style={{ marginLeft: 5, flex: 7, flexDirection: 'column', justifyContent: 'center' }}>
@@ -661,9 +659,8 @@ export class Directory extends Component {
                     )
                 }
             }
-            this.setState({ fileLinks: fileLinks })
+            this.setState({ fileLinks: fileLinks }, this.flatListRef.scrollTo({ x: 0, y: 0, animated: false }))
             this.setState({ refreshing: false });
-            this.flatListRef.scrollTo({ x: 0, y: 0, animated: true })
         })))
     }
 
