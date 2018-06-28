@@ -373,97 +373,95 @@ export class Remote extends Component {
     render() {
         return (
             <View style={{ flex: 1, backgroundColor: '#fafafa' }}>
-            <ScrollView>
-                <View style={{}}>
-                    <View style={{ height: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2196f3', borderBottomWidth: 1, elevation: 5 }}>
-                        <ScrollView style={{ backgroundColor: 'white', borderWidth: 1, elevation: 5, borderRadius: 10, margin: 5 }} ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
-                            <View style={{ justifyContent: 'center' }}>
-                                <Text style={{ fontWeight: 'bold', fontSize: 30 }}>{this.state.file}</Text>
-                            </View>
-                        </ScrollView>
-                    </View>
-                    <View style={{ height: 40, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 30 }}>{this.state.positionstring} / {this.state.durationstring}</Text>
-                    </View>
-                    <View style={{ height: 70, borderBottomWidth: 1 }}>
-                        <this.SeekBar />
-                    </View>
-                </View>
-                <View style={{ height: 50, flexDirection: 'row', borderBottomWidth: 1 }}>
-                    <View style={{ flex: 1, }}>
-                        <this.VolumeSlider />
-                    </View>
-                    <View style={{ flexShrink: 1, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
-                        <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.VolumeMute) }}>
-                            <View style={{ backgroundColor: '#2196f3', borderWidth: 1, elevation: 5, borderRadius: 10 }}>
-                                <Octicons name={this.state.muted == 1 ? "mute" : "unmute"} size={32} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <this.CommandBar />
-                <this.SubtitleModal />
-                <this.AudioModal />
-                <View style={{ flexGrow: 1, flexDirection: 'row', borderBottomWidth: 1 }} >
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
-                        <View>
-                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayIncrease) }}>
-                                <MaterialCommunityIcons name="plus" size={48} color="black" />
-                            </TouchableOpacity>
+                <ScrollView>
+                    <View style={{}}>
+                        <View style={{ height: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0d47a1', borderBottomWidth: 1, elevation: 5 }}>
+                            <ScrollView ref={(ref) => this.flatListRef = ref} horizontal={true} showsHorizontalScrollIndicator={false} /*onContentSizeChange={(width, height) => this.flatListRef.scrollToEnd({ animated: true })} */>
+                                <View style={{ justifyContent: 'center' }}>
+                                    <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 30 }}>{this.state.file}</Text>
+                                </View>
+                            </ScrollView>
                         </View>
-                        <View style={{ flexDirection: 'row' }} >
-                            <View>
-                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevSubtitleTrack) }}>
-                                    <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
-                                </TouchableOpacity>
-                            </View>
-                            <View>
-                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.OnOffSubtitle) }}>
-                                    <MaterialIcons name="subtitles" size={48} color="black" />
-                                </TouchableOpacity>
-                            </View>
-                            <View>
-                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextSubtitleTrack) }}>
-                                    <MaterialCommunityIcons name="skip-next" size={48} color="black" />
-                                </TouchableOpacity>
-                            </View>
+                        <View style={{ height: 40, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 30 }}>{this.state.positionstring} / {this.state.durationstring}</Text>
                         </View>
-                        <View>
-                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayDecrease) }}>
-                                <MaterialCommunityIcons name="minus" size={48} color="black" />
+                        <View style={{ height: 70, borderBottomWidth: 1 }}>
+                            <this.SeekBar />
+                        </View>
+                    </View>
+                    <View style={{ height: 50, flexDirection: 'row', borderBottomWidth: 1 }}>
+                        <View style={{ flex: 1, }}>
+                            <this.VolumeSlider />
+                        </View>
+                        <View style={{ flexShrink: 1, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
+                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.VolumeMute) }}>
+                                <Octicons name={this.state.muted == 1 ? "mute" : "unmute"} size={32} color="black" />
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
-                        <View>
-                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelayAdd10ms) }}>
-                                <MaterialCommunityIcons name="plus" size={48} color="black" />
-                            </TouchableOpacity>
+                    <this.CommandBar />
+                    <this.SubtitleModal />
+                    <this.AudioModal />
+                    <View style={{ flexGrow: 1, flexDirection: 'row', borderBottomWidth: 1 }} >
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayIncrease) }}>
+                                    <MaterialCommunityIcons name="plus" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{ flexDirection: 'row' }} >
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevSubtitleTrack) }}>
+                                        <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.OnOffSubtitle) }}>
+                                        <MaterialIcons name="subtitles" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextSubtitleTrack) }}>
+                                        <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            <View>
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayDecrease) }}>
+                                    <MaterialCommunityIcons name="minus" size={48} color="black" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <View style={{ flexDirection: 'row' }} >
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
                             <View>
-                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
-                                    <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelayAdd10ms) }}>
+                                    <MaterialCommunityIcons name="plus" size={48} color="black" />
                                 </TouchableOpacity>
                             </View>
-                            <View>
-                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.VolumeMute) }}>
-                                    <MaterialIcons name="audiotrack" size={48} color="black" />
-                                </TouchableOpacity>
+                            <View style={{ flexDirection: 'row' }} >
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
+                                        <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.VolumeMute) }}>
+                                        <MaterialIcons name="audiotrack" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View>
+                                    <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
+                                        <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                             <View>
-                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
-                                    <MaterialCommunityIcons name="skip-next" size={48} color="black" />
+                                <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelaySubtract10ms) }}>
+                                    <MaterialCommunityIcons name="minus" size={48} color="black" />
                                 </TouchableOpacity>
                             </View>
-                        </View>
-                        <View>
-                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelaySubtract10ms) }}>
-                                <MaterialCommunityIcons name="minus" size={48} color="black" />
-                            </TouchableOpacity>
                         </View>
                     </View>
-                </View>
                 </ScrollView>
             </View>
         )
@@ -675,8 +673,8 @@ export class Remote extends Component {
             value={this.state.volumelevel}
             step={1}
             maximumValue={100}
-            thumbTintColor={'#2196f3'}
-            minimumTrackTintColor={'#2196f3'}
+            thumbTintColor={'#0d47a1'}
+            minimumTrackTintColor={'#5472d3'}
             onValueChange={(value) => {
                 this.settingVolume = true;
                 clearTimeout(this.timeOutVolume);
@@ -691,11 +689,13 @@ export class Remote extends Component {
     };
 
     SeekBar = props => {
+
+        
         return (<Slider style={{ height: "100%" }}
             value={this.state.position}
             maximumValue={this.state.duration}
-            thumbTintColor={'#2196f3'}
-            minimumTrackTintColor={'#2196f3'}
+            thumbTintColor={'#0d47a1'}
+            minimumTrackTintColor={'#5472d3'}
             onValueChange={(value) => {
                 this.seeking = true;
                 clearTimeout(this.timeOut);
@@ -752,7 +752,7 @@ export class Settings extends Component {
     render() {
         return (
             <View style={{ flex: 1, backgroundColor: '#fafafa' }}>
-                <View style={{ backgroundColor: '#2196F3', borderBottomWidth: 1, elevation: 5 }}>
+                <View style={{ backgroundColor: '#0d47a1', borderBottomWidth: 1, elevation: 5 }}>
                     <View style={{ flexDirection: 'row', height: 49 }}>
                         <View style={{ flex: 1, margin: 10, backgroundColor: 'white', elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center' }}>
                             <TextInput
@@ -773,7 +773,7 @@ export class Settings extends Component {
                     </View>
                 </View>
 
-                <View style={{ flexDirection: 'row', height: 50, paddingLeft: 5, paddingRight: 5, backgroundColor: '#6ec6ff', borderBottomWidth: 1, elevation: 3 }}>
+                <View style={{ flexDirection: 'row', height: 50, paddingLeft: 5, paddingRight: 5, backgroundColor: '#f0f0f0', borderBottomWidth: 1, elevation: 3 }}>
                     <View style={{ flex: 1, backgroundColor: 'white', marginTop: 5, marginBottom: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center' }}>
                         <TextInput underlineColorAndroid="transparent" style={{ paddingLeft: 5 }} value={this.state.extension} onChangeText={(text) => { this.setState({ extension: text }) }} />
                     </View>
@@ -786,7 +786,7 @@ export class Settings extends Component {
                             }
                         })
                     }}>
-                        <View style={{ width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={{ width: 40, height: 40, backgroundColor: 'green', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
                             <MaterialCommunityIcons name="playlist-plus" size={32} color="white" />
                         </View>
                     </TouchableOpacity>
@@ -807,7 +807,7 @@ export class Settings extends Component {
                                 splicedArray.splice(index, 1);
                                 this.setState({ extensions: splicedArray }, () => AsyncStorage.setItem('EXTENSIONS', JSON.stringify(splicedArray)));
                             }}>
-                                <View style={{ width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                <View style={{ width: 40, height: 40, backgroundColor: 'red', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
                                     <MaterialCommunityIcons name="playlist-remove" size={32} color="white" />
                                 </View>
                             </TouchableOpacity>
@@ -892,8 +892,8 @@ export class Directory extends Component {
                             </Text>
                         </View>
                         <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.XHR(ip, port, directoryLink)}>
-                            <View style={{ width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                <MaterialCommunityIcons name="folder-open" size={32} color="white" />
+                            <View style={{ width: 40, height: 40, backgroundColor: '#fafafa', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="folder-open" size={32} color="#5472d3" />
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -915,8 +915,8 @@ export class Directory extends Component {
                                 </Text>
                             </View>
                             <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.playFileFromURL(ip, port, fileLink)}>
-                                <View style={{ width: 40, height: 40, backgroundColor: '#2196F3', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 20, borderWidth: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                    <FontAwesome name="play-circle" size={32} color="white" />
+                                <View style={{ width: 40, height: 40, backgroundColor: '#fafafa', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 20, borderWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
+                                    <FontAwesome name="play-circle" size={32} color="#5472d3" />
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -935,7 +935,7 @@ export class Directory extends Component {
     render() {
         return (
             <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#fafafa' }}>
-                <View style={{ backgroundColor: '#2196F3', height: 50, elevation: 5, borderBottomWidth: 1, justifyContent: 'center' }}>
+                <View style={{ backgroundColor: '#0d47a1', height: 50, elevation: 5, borderBottomWidth: 1, justifyContent: 'center' }}>
                     <View style={{ backgroundColor: 'white', marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1 }}>
                         <TextInput style={{ marginLeft: 5 }} underlineColorAndroid="transparent" autoCorrect={false} value={this.state.searchBar} onChangeText={(text) => this.setState({ searchBar: text })} onEndEditing={() => {
                             AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip, port, "/browser.html?path=" + this.state.searchBar)))
@@ -973,7 +973,7 @@ export default class extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <View style={{ height: Exponent.Constants.statusBarHeight, backgroundColor: '#2196F3' }}></View>
+                <View style={{ height: Exponent.Constants.statusBarHeight, backgroundColor: '#0d47a1' }}></View>
                 <StatusBar barStyle='light-content' />
                 <Swiper style={styles.wrapper}
                     dot={<View style={{ backgroundColor: 'rgb(255,255,255)', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7, borderRadius: 6.5, borderWidth: 1 }} />}
