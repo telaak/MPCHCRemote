@@ -1,7 +1,8 @@
 {
   "expo": {
 	"name": "MPCHC-Remote",
-    "sdkVersion": "27.0.0",
+	"sdkVersion": "27.0.0",
+	"icon": "./web_hi_res_512.png",
 	"android": {
 		"package": "me.laaksonen.mpchcremote"
 	}

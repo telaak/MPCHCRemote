@@ -8,9 +8,12 @@ import {
     AsyncStorage,
     ScrollView,
     Modal,
+    Dimensions
 } from 'react-native'
 
 import styles from './Styles.js';
+
+const { width, height } = Dimensions.get('window');
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
@@ -337,12 +340,13 @@ export class Remote extends Component {
 
             <View style={styles.remoteBackground}>
 
-                <ScrollView>
                     <this.TitleBar />
                     <this.NavigationBar />
                     <this.CommandBar />
                     <this.VolumeBar />
-                    <View style={{ flexDirection: 'row', marginTop: 15 }} >
+                    <View style={{ flexDirection: 'row', marginTop: 15, height: 80 }} 
+                    
+                    >
                         <TouchableOpacity style={styles.remoteNavigationBarButton} onPress={() => { this.setState({ subtitleModalVisible: true }) }} >
                             <View>
                                 <MaterialIcons name="subtitles" size={32} color="white" />
@@ -356,7 +360,6 @@ export class Remote extends Component {
                     </View>
                     <this.SubtitleModal />
                     <this.AudioModal />
-                </ScrollView>
 
             </View>
         )
@@ -429,7 +432,7 @@ export class Remote extends Component {
 
     NavigationBar = props => {
         return (
-            <View style={{ paddingBottom: 15 }}>
+            <View style={{ }}>
                 <this.NavigationText />
                 <this.SeekSlider />
                 <this.NavigationButtonBar />
@@ -456,13 +459,13 @@ export class Remote extends Component {
         return (
             <View style={{ flexDirection: 'row' }}>
                 <TouchableOpacity style={styles.remoteNavigationBarButton}
-                    onPress={() => { let position = this.state.position; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position - 10000)); this.setState({ position: position - 10000, positionstring: this.convertMillisToTime(position - 10000) }) }}>
+                    onPress={() => { let position = this.state.position - 10000 <= 0 ? 0 : this.state.position - 10000; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position)); this.setState({ position: position, positionstring: this.convertMillisToTime(position) }) }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }} >
                         <Entypo name="back" size={32} color="white" />
                     </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.remoteNavigationBarButton}
-                    onPress={() => { let position = this.state.position; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position + 10000)); this.setState({ position: position + 10000, positionstring: this.convertMillisToTime(position + 10000) }) }}>
+                    onPress={() => { let position = this.state.position + 10000 >= this.state.duration ? this.state.duration : this.state.position + 10000; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position)); this.setState({ position: position, positionstring: this.convertMillisToTime(position) }) }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }} >
                         <Entypo name="forward" size={32} color="white" />
                     </View>
@@ -493,7 +496,7 @@ export class Remote extends Component {
 
     CommandBar = props => {
         return (
-            <View style={{ height: 80, flexDirection: 'row', paddingTop: 15, paddingBottom: 15 }}>
+            <View style={{ width: "100%", flexWrap: 'wrap', flexDirection: 'row', paddingTop: 15, paddingBottom: 15, justifyContent: 'center', alignItems: 'center' }}>
                 <TouchableOpacity style={styles.remoteCommandBarButton} onPress={() => { this.HTTPPostRequest(commands.Play) }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }} >
                         <MaterialCommunityIcons name="play" size={32} color="white" />
@@ -512,6 +515,12 @@ export class Remote extends Component {
                     </View>
                 </TouchableOpacity>
 
+                <TouchableOpacity style={styles.remoteCommandBarButton} onPress={() => { this.HTTPPostRequest(commands.FullScreen) }}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center' }} >
+                        <Entypo name="resize-full-screen" size={32} color="white" />
+                    </View>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.remoteCommandBarButton} onPress={() => { this.HTTPPostRequest(commands.Previous) }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }} >
                         <MaterialCommunityIcons name="skip-previous" size={32} color="white" />
@@ -523,14 +532,6 @@ export class Remote extends Component {
                         <MaterialCommunityIcons name="skip-next" size={32} color="white" />
                     </View>
                 </TouchableOpacity>
-
-
-                <TouchableOpacity style={styles.remoteCommandBarButton} onPress={() => { this.HTTPPostRequest(commands.FullScreen) }}>
-                    <View style={{ justifyContent: 'center', alignItems: 'center' }} >
-                        <Entypo name="resize-full-screen" size={32} color="white" />
-                    </View>
-                </TouchableOpacity>
-
 
             </View>
         )
@@ -556,8 +557,6 @@ export class Remote extends Component {
                             <View style={{
                                 width: 300,
                                 height: 150,
-
-                                
                                 backgroundColor: backgroundColor,
                                 borderWidth: 1,
                                 elevation: 5

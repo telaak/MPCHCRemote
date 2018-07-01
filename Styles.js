@@ -43,30 +43,30 @@ export const styles = StyleSheet.create({
     },
 
     remoteNavigationBarButton: {
-        flex: 1,
+        flexGrow: 1,
         elevation: 2,
         borderRadius: 10, 
         backgroundColor: 
         lightPrimaryColor, 
         justifyContent: 'center', 
         alignItems: 'center', 
-        marginRight: 20, 
-        marginLeft: 20
+        marginRight: 10, 
+        marginLeft: 10
     },
 
-
-
-    
     remoteCommandBarButton: {
-        flex: 1,
+        width: 85,
+        height: 50,
+
+        
+        flexGrow: 1,
         elevation: 2,
         borderRadius: 10, 
         backgroundColor: 
         lightPrimaryColor, 
         justifyContent: 'center', 
         alignItems: 'center', 
-        marginRight: 5, 
-        marginLeft: 5
+        margin: 5
     }
 });
 
