@@ -32,10 +32,13 @@ export class Directory extends Component {
             searchBar: "",
             backLink: "",
             fileLinks: [],
-            directoryLinks: [],
-            currentDirectory: <Button title={'Connect'} onPress={() => { AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip, port, "/browser.html"))) }} />
+            directoryLinks: []
         }
     }
+
+    /**
+     * Tries to fetch the currently loaded file's directory listing
+     */
 
     componentDidMount() {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip, port, "/browser.html")))
@@ -45,18 +48,24 @@ export class Directory extends Component {
         fetch("http://" + ip + ":" + port + location)
     }
 
+    /**
+     * Used instead of fetch due to fetch's timeout being 100 seconds
+     */
+
     XHR(ip, port, url) {
         const request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
                 return;
             }
+            // If the request is succesful
             if (request.status === 200) {
                 this.parseHTML(request.responseText)
             }
         };
         request.open('GET', 'http://' + ip + ":" + port + url);
         request.send();
+        // 125ms timeout timer to stop requests from hanging too long
         this.TimeOutTimer = setTimeout(() => {
             if (request.readyState !== XMLHttpRequest.DONE) {
                 request.abort();
@@ -64,25 +73,37 @@ export class Directory extends Component {
         }, 125);
     }
 
+    /**
+     * Called from App.js via reference
+     */
+
     goBack() {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => {
             this.XHR(ip, port, this.state.backLink)
         }))
     }
 
+    /**
+     * Parses the html to generate the directory listing
+     */
+
     parseHTML(html) {
         this.setState({ refreshing: true });
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) => {
             let doc = new DOMParser().parseFromString(html, 'text/html');
+            // The document has two tables
             const tables = doc.getElementsByTagName('table');
+            // The first table contains the current directory along with useless whitespace and html tags that are sliced out
             let currentDirectoryName = tables[0].getElementsByTagName('td')[0].textContent.slice(36)
             currentDirectoryName = currentDirectoryName.slice(0, -21)
+            // The second table contains all the directory and file listings, searching for directories
             const directories = tables[1].getElementsByClassName('dirname');
+            // The first table has a convenient link for going back in the directory structure
             const backLink = directories[0].getElementsByTagName('a')[0].getAttribute('href');
             this.setState({ backLink: backLink });
-            this.setState({ currentDirectory: <Button title={".."} onPress={() => this.XHR(ip, port, backLink)} /> });
             this.setState({ searchBar: currentDirectoryName })
             const directoryLinks = [];
+            // All the nodes containing links to directories are looped through and pushed to an array
             for (let i = 1; i < directories.length; i++) {
                 let directoryName = directories[i].textContent;
                 let directoryLink = directories[i].getElementsByTagName('a')[0].getAttribute('href');
@@ -103,8 +124,11 @@ export class Directory extends Component {
             }
             this.setState({ directoryLinks: directoryLinks });
             const fileLinks = [];
+            // The extensions are stored as a JSON array in AsyncStorage
             const fileExtensions = JSON.parse(extensions);
+            // Finding all the nodes
             const filesAndDirectories = doc.getElementsByTagName('tr');
+            // The first two nodes contain the current location and tooltips, ignoring
             for (let j = 2; j < filesAndDirectories.length; j++) {
                 if (fileExtensions.includes(filesAndDirectories[j].getAttribute('class'))) {
                     let fileName = filesAndDirectories[j].getElementsByTagName('td')[0].textContent;

@@ -1,10 +1,14 @@
 {
-  "expo": {
-	"name": "MPCHC-Remote",
-	"sdkVersion": "27.0.0",
-	"icon": "./web_hi_res_512.png",
-	"android": {
-		"package": "me.laaksonen.mpchcremote"
+	"expo": {
+		"name": "MPCHC-Remote",
+		"sdkVersion": "27.0.0",
+		"icon": "./web_hi_res_512.png",
+		"splash": {
+			"image": "./web_hi_res_512.png"
+		},
+		"primaryColor": "#0d47a1",
+		"android": {
+			"package": "me.laaksonen.mpchcremote"
+		}
 	}
-  }
 }

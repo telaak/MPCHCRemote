@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
     },
 
     remoteNavigationBarButton: {
-        flexGrow: 1,
+        flex: 1,
         elevation: 2,
         borderRadius: 10, 
         backgroundColor: 
@@ -57,8 +57,6 @@ export const styles = StyleSheet.create({
     remoteCommandBarButton: {
         width: 85,
         height: 50,
-
-        
         flexGrow: 1,
         elevation: 2,
         borderRadius: 10, 

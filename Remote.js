@@ -7,16 +7,12 @@ import {
     TouchableWithoutFeedback,
     AsyncStorage,
     ScrollView,
-    Modal,
-    Dimensions
+    Modal
 } from 'react-native'
 
 import styles from './Styles.js';
 
-const { width, height } = Dimensions.get('window');
-
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { FontAwesome } from '@expo/vector-icons';
 import { Octicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
@@ -243,6 +239,10 @@ export class Remote extends Component {
         }
     }
 
+    /**
+     * Sets a one second looping timer to fetch data from the web interface
+     */
+
     componentDidMount() {
         this.timerID = setInterval(
             () => this.tick(),
@@ -254,24 +254,35 @@ export class Remote extends Component {
         clearInterval(this.timerID);
     }
 
+    /**
+     * Used instead of fetch due to fetch's timeout being 100 seconds
+     */
+
     XHR(ip, port) {
         const request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
                 return;
             }
+            // If the request is succesful
             if (request.status === 200) {
                 this.fetchInfo(ip, port)
             }
         };
         request.open('GET', 'http://' + ip + ":" + port + "/variables.html");
         request.send();
+        // 125ms timer to avoid fetch hanging forever
         this.TimeOutTimer = setTimeout(() => {
             if (request.readyState !== XMLHttpRequest.DONE) {
                 request.abort();
             }
         }, 125);
     }
+
+    /**
+     * Fetches variable data and parses it into states
+     * Avoids setting states if currently using the seek or volume slider
+     */
 
     fetchInfo(ip, port) {
         fetch('http://' + ip + ':' + port + '/variables.html')
@@ -309,9 +320,17 @@ export class Remote extends Component {
             });
     }
 
+    /**
+     * Called periodically
+     */
+
     tick() {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip, port)))
     }
+
+    /**
+     * Sends commands to the player
+     */
 
     HTTPPostRequest(command, extraName, extraValue) {
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) =>
@@ -323,6 +342,10 @@ export class Remote extends Component {
                 body: "wm_command=" + command + "&" + extraName + "=" + extraValue
             })))
     }
+
+    /**
+     * Converts milliseconds to HH:MM:SS for both the position command and displaying values
+     */
 
     convertMillisToTime(millis) {
         let delim = ":";
@@ -340,27 +363,31 @@ export class Remote extends Component {
 
             <View style={styles.remoteBackground}>
 
-                    <this.TitleBar />
-                    <this.NavigationBar />
-                    <this.CommandBar />
-                    <this.VolumeBar />
-                    <View style={{ flexDirection: 'row', marginTop: 15, height: 80 }} 
-                    
-                    >
-                        <TouchableOpacity style={styles.remoteNavigationBarButton} onPress={() => { this.setState({ subtitleModalVisible: true }) }} >
-                            <View>
-                                <MaterialIcons name="subtitles" size={32} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.remoteNavigationBarButton} onPress={() => { this.setState({ audioModalVisible: true }) }} >
-                            <View>
-                                <MaterialIcons name="audiotrack" size={32} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                    <this.SubtitleModal />
-                    <this.AudioModal />
+                <this.TitleBar />
+                <this.NavigationBar />
+                <this.CommandBar />
+                <this.VolumeBar />
+                <this.ExtraButtonBar />
+                <this.SubtitleModal />
+                <this.AudioModal />
 
+            </View>
+        )
+    }
+
+    ExtraButtonBar = props => {
+        return (
+            <View style={{ flexDirection: 'row', marginTop: 15, height: 80 }} >
+                <TouchableOpacity style={styles.remoteNavigationBarButton} onPress={() => { this.setState({ subtitleModalVisible: true }) }} >
+                    <View>
+                        <MaterialIcons name="subtitles" size={32} color="white" />
+                    </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.remoteNavigationBarButton} onPress={() => { this.setState({ audioModalVisible: true }) }} >
+                    <View>
+                        <MaterialIcons name="audiotrack" size={32} color="white" />
+                    </View>
+                </TouchableOpacity>
             </View>
         )
     }
@@ -432,7 +459,7 @@ export class Remote extends Component {
 
     NavigationBar = props => {
         return (
-            <View style={{ }}>
+            <View style={{}}>
                 <this.NavigationText />
                 <this.SeekSlider />
                 <this.NavigationButtonBar />
@@ -718,21 +745,6 @@ export class Remote extends Component {
                     }} />
             </View>)
     };
-
-    UIButton = props => {
-        return (
-            <TouchableOpacity style={{
-                width: 50,
-                height: 50,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#00BCD4',
-                borderRadius: 10,
-                borderColor: '#fff',
-                margin: 5
-            }} onPress={() => this.HTTPPostRequest(props.command)}>
-            </TouchableOpacity>
-        )
-    }
 }
+
 export default Remote;
