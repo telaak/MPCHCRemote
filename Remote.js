@@ -377,7 +377,7 @@ export class Remote extends Component {
 
     ExtraButtonBar = props => {
         return (
-            <View style={{ flexDirection: 'row', marginTop: 15, height: 80 }} >
+            <View style={{ flexDirection: 'row', marginTop: 15, height: 40 }} >
                 <TouchableOpacity style={styles.remoteNavigationBarButton} onPress={() => { this.setState({ subtitleModalVisible: true }) }} >
                     <View>
                         <MaterialIcons name="subtitles" size={32} color="white" />
@@ -486,13 +486,21 @@ export class Remote extends Component {
         return (
             <View style={{ flexDirection: 'row' }}>
                 <TouchableOpacity style={styles.remoteNavigationBarButton}
-                    onPress={() => { let position = this.state.position - 10000 <= 0 ? 0 : this.state.position - 10000; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position)); this.setState({ position: position, positionstring: this.convertMillisToTime(position) }) }}>
+                    onPress={() => {
+                        let position = this.state.position - 10000 <= 0 ? 0 : this.state.position - 10000; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position)); this.setState({ position: position, positionstring: this.convertMillisToTime(position) });
+                        clearTimeout(this.timeOut)
+                        this.timeOut = setTimeout(() => this.seeking = false, 1250);
+                    }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }} >
                         <Entypo name="back" size={32} color="white" />
                     </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.remoteNavigationBarButton}
-                    onPress={() => { let position = this.state.position + 10000 >= this.state.duration ? this.state.duration : this.state.position + 10000; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position)); this.setState({ position: position, positionstring: this.convertMillisToTime(position) }) }}>
+                    onPress={() => {
+                        let position = this.state.position + 10000 >= this.state.duration ? this.state.duration : this.state.position + 10000; this.HTTPPostRequest('-1', 'position', this.convertMillisToTime(position)); this.setState({ position: position, positionstring: this.convertMillisToTime(position) });
+                        clearTimeout(this.timeOut)
+                        this.timeOut = setTimeout(() => this.seeking = false, 1250);
+                    }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }} >
                         <Entypo name="forward" size={32} color="white" />
                     </View>
@@ -583,7 +591,7 @@ export class Remote extends Component {
                         <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={{
                                 width: 300,
-                                height: 150,
+                                height: 165,
                                 backgroundColor: backgroundColor,
                                 borderWidth: 1,
                                 elevation: 5
@@ -593,35 +601,37 @@ export class Remote extends Component {
                                 </View>
                                 <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                                     <View style={{ flexDirection: 'row' }}>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelaySubtract10ms) }}>
-                                                <MaterialCommunityIcons name="minus" size={48} color="black" />
-                                            </TouchableOpacity>
+
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.AudioDelaySubtract10ms) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="minus" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
+
+                                        <View style={{margin: 5}}>
+                                            <MaterialCommunityIcons name="timer" size={48} color="#0d47a1" />
                                         </View>
-                                        <View>
-                                            <MaterialCommunityIcons name="timer" size={48} color="black" />
-                                        </View>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.AudioDelayAdd10ms) }}>
-                                                <MaterialCommunityIcons name="plus" size={48} color="black" />
-                                            </TouchableOpacity>
-                                        </View>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.AudioDelayAdd10ms) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="plus" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
 
                                     <View style={{ flexDirection: 'row' }}>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
-                                                <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
-                                            </TouchableOpacity>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.PrevAudioTrack) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="skip-previous" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <View style={{margin: 5}}>
+                                            <MaterialIcons name="audiotrack" size={48} color="#0d47a1" />
                                         </View>
-                                        <View>
-                                            <MaterialIcons name="audiotrack" size={48} color="black" />
-                                        </View>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextAudioTrack) }}>
-                                                <MaterialCommunityIcons name="skip-next" size={48} color="black" />
-                                            </TouchableOpacity>
-                                        </View>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.NextAudioTrack) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="skip-next" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
 
                                 </View>
@@ -653,7 +663,7 @@ export class Remote extends Component {
                         <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={{
                                 width: 300,
-                                height: 150,
+                                height: 165,
                                 backgroundColor: backgroundColor,
                                 borderWidth: 1,
                                 elevation: 5
@@ -663,35 +673,35 @@ export class Remote extends Component {
                                 </View>
                                 <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                                     <View style={{ flexDirection: 'row' }}>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayDecrease) }}>
-                                                <MaterialCommunityIcons name="minus" size={48} color="black" />
-                                            </TouchableOpacity>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayDecrease) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="minus" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <View style={{margin: 5}}>
+                                            <MaterialCommunityIcons name="timer" size={48} color="#0d47a1" />
                                         </View>
-                                        <View>
-                                            <MaterialCommunityIcons name="timer" size={48} color="black" />
-                                        </View>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayIncrease) }}>
-                                                <MaterialCommunityIcons name="plus" size={48} color="black" />
-                                            </TouchableOpacity>
-                                        </View>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.SubtitleDelayIncrease) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="plus" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
 
                                     <View style={{ flexDirection: 'row' }}>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.PrevSubtitleTrack) }}>
-                                                <MaterialCommunityIcons name="skip-previous" size={48} color="black" />
-                                            </TouchableOpacity>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.PrevSubtitleTrack) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="skip-previous" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <View style={{margin: 5}}>
+                                            <MaterialIcons name="subtitles" size={48} color="#0d47a1" />
                                         </View>
-                                        <View>
-                                            <MaterialIcons name="subtitles" size={48} color="black" />
-                                        </View>
-                                        <View>
-                                            <TouchableOpacity onPress={() => { this.HTTPPostRequest(commands.NextSubtitleTrack) }}>
-                                                <MaterialCommunityIcons name="skip-next" size={48} color="black" />
-                                            </TouchableOpacity>
-                                        </View>
+                                        <TouchableOpacity style={{ elevation: 2, backgroundColor: '#5472d3', borderRadius: 10, margin: 5 }} onPress={() => { this.HTTPPostRequest(commands.NextSubtitleTrack) }}>
+                                            <View>
+                                                <MaterialCommunityIcons name="skip-forward" size={48} color="white" />
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
 
                                 </View>

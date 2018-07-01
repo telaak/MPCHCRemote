@@ -27,6 +27,10 @@ export class Settings extends Component {
         }
     }
 
+    /**
+     * Fetches the keys from AsyncStorage and saves the extension list if running for the first time
+     */
+
     componentDidMount() {
         AsyncStorage.getItem('IP').then((value) => this.setState({ 'ip': value }));
         AsyncStorage.getItem('PORT').then((value) => this.setState({ 'port': value }));

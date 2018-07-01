@@ -41,7 +41,8 @@ export class Directory extends Component {
      */
 
     componentDidMount() {
-        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip, port, "/browser.html")))
+        setTimeout(() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => { this.XHR(ip, port, '/browser.html') }))
+    }, 1500)
     }
 
     playFileFromURL(ip, port, location) {

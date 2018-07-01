@@ -44,10 +44,10 @@ export default class extends Component {
                 <View style={{ height: Exponent.Constants.statusBarHeight, backgroundColor: '#0d47a1' }}></View>
                 <StatusBar barStyle='light-content' />
                 <Swiper style={styles.wrapper}
-                    dot={<View style={{ backgroundColor: 'rgb(255,255,255)', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7, borderRadius: 6.5, borderWidth: 1 }} />}
-                    activeDot={<View style={{ backgroundColor: '#0d47a1', width: 13, height: 13, borderRadius: 7, marginLeft: 7, marginRight: 7, borderRadius: 6.5, borderWidth: 1 }} />}
+                    dot={<View style={{ backgroundColor: 'transparent', width: "33%", height: 5}} />}
+                    activeDot={<View style={{ backgroundColor: 'grey', width: "33%", height: 5}} />}
                     paginationStyle={{
-                        bottom: 20
+                        bottom: 0
                     }}
                     loop={false}
                     onIndexChanged={(index) => { this.setState({ screen: index }) }}>
