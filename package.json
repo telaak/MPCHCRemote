@@ -1,29 +1,36 @@
 {
-  "name": "MPCHC-Remote",
-  "version": "0.1.0",
-  "private": true,
-  "devDependencies": {
-    "react-native-scripts": "1.14.0",
-    "jest-expo": "~27.0.0",
-    "react-test-renderer": "16.3.1"
-  },
-  "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "react-native-scripts start",
-    "eject": "react-native-scripts eject",
-    "android": "react-native-scripts android",
-    "ios": "react-native-scripts ios",
-    "test": "jest"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "eject": "expo eject",
+    "test": "jest --watchAll"
   },
   "jest": {
     "preset": "jest-expo"
   },
   "dependencies": {
-    "expo": "^27.0.1",
-    "react": "16.3.1",
-    "react-native": "~0.55.2",
-    "react-native-html-parser": "0.0.5",
-    "react-native-swiper": "^1.5.13",
-    "react-native-vector-icons": "^4.6.0"
-  }
+    "@expo/samples": "~3.0.0",
+    "@expo/vector-icons": "^10.0.1",
+    "expo": "^33.0.0",
+    "expo-asset": "^5.0.0",
+    "expo-constants": "^5.0.0",
+    "expo-font": "^5.0.0",
+    "expo-web-browser": "^5.0.0",
+    "react": "16.8.3",
+    "react-dom": "^16.8.6",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.0.tar.gz",
+    "react-native-web": "^0.11.4",
+    "react-navigation": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/expo": "^32.0.13",
+    "@types/react-native": "^0.57.63",
+    "babel-preset-expo": "^5.1.0",
+    "jest-expo": "^33.0.0",
+    "typescript": "^3.5.2"
+  },
+  "private": true
 }

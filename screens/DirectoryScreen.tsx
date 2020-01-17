@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, EventHandler } from 'react'
 import {
     View,
     Text,
@@ -9,9 +9,15 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     RefreshControl,
+    NativeEventSubscription,
 } from 'react-native'
 
-import styles from './Styles.js';
+import { BackHandler } from 'react-native';
+
+import { NavigationActions, FlatList } from 'react-navigation'
+
+
+import styles from '../Styles.js';
 
 const backgroundColor = '#fafafa';
 const primaryColor = '#0d47a1';
@@ -23,9 +29,29 @@ import { FontAwesome } from '@expo/vector-icons';
 
 const DOMParser = require('react-native-html-parser').DOMParser;
 
+type DirectoryProps = {
+    navigation: any
+}
 
-export class Directory extends Component {
-    constructor(props) {
+type DirectoryState = {
+    refreshing: boolean
+    searchBar: string
+    backLink: string
+    fileLinks: any[]
+    directoryLinks: any[]
+}
+
+
+export class Directory extends Component<DirectoryProps, DirectoryState> {
+
+  private backHandler?: NativeEventSubscription
+  private TimeOutTimer?: NodeJS.Timer
+  private flatListRef?: any
+
+  static navigationOptions = {
+    header: null
+  }
+    constructor(props: any) {
         super(props);
         this.state = {
             refreshing: false,
@@ -41,11 +67,20 @@ export class Directory extends Component {
      */
 
     componentDidMount() {
-        setTimeout(() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => { this.XHR(ip, port, '/browser.html') }))
-    }, 1500)
+        setTimeout(() => {AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => { this.XHR(String(ip), String(port), '/browser.html') }))
+    }, 500)
+       this.backHandler = BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     }
 
-    playFileFromURL(ip, port, location) {
+    handleBackPress = () => {
+      if (this.props.navigation.isFocused()) {
+        this.goBack();
+        return true;
+      }
+        return this.props.navigation.dispatch(NavigationActions.back())
+      }
+
+    playFileFromURL(ip: string, port: string, location: string) {
         fetch("http://" + ip + ":" + port + location)
     }
 
@@ -53,7 +88,7 @@ export class Directory extends Component {
      * Used instead of fetch due to fetch's timeout being 100 seconds
      */
 
-    XHR(ip, port, url) {
+    XHR(ip: string, port: string, url: string) {
         const request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
@@ -78,9 +113,10 @@ export class Directory extends Component {
      * Called from App.js via reference
      */
 
-    goBack() {
+    async goBack() {
+        const keys = await AsyncStorage.multiGet(['IP', 'PORT'])
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => {
-            this.XHR(ip, port, this.state.backLink)
+            this.XHR(String(ip), String(port), this.state.backLink)
         }))
     }
 
@@ -88,7 +124,7 @@ export class Directory extends Component {
      * Parses the html to generate the directory listing
      */
 
-    parseHTML(html) {
+    parseHTML(html: string) {
         this.setState({ refreshing: true });
         AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => AsyncStorage.getItem('EXTENSIONS').then((extensions) => {
             let doc = new DOMParser().parseFromString(html, 'text/html');
@@ -115,7 +151,7 @@ export class Directory extends Component {
                                 {directoryName}
                             </Text>
                         </View>
-                        <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.XHR(ip, port, directoryLink)}>
+                        <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.XHR(String(ip), String(port), directoryLink)}>
                             <View style={{ width: 40, height: 40, backgroundColor: '#fafafa', marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
                                 <MaterialCommunityIcons name="folder-open" size={32} color={lightPrimaryColor} />
                             </View>
@@ -126,7 +162,7 @@ export class Directory extends Component {
             this.setState({ directoryLinks: directoryLinks });
             const fileLinks = [];
             // The extensions are stored as a JSON array in AsyncStorage
-            const fileExtensions = JSON.parse(extensions);
+            const fileExtensions = JSON.parse(String(extensions));
             // Finding all the nodes
             const filesAndDirectories = doc.getElementsByTagName('tr');
             // The first two nodes contain the current location and tooltips, ignoring
@@ -141,7 +177,7 @@ export class Directory extends Component {
                                     {fileName}
                                 </Text>
                             </View>
-                            <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.playFileFromURL(ip, port, fileLink)}>
+                            <TouchableOpacity style={{ flexShrink: 1 }} onPress={() => this.playFileFromURL(String(ip), String(port), fileLink)}>
                                 <View style={{ width: 40, height: 40, backgroundColor: backgroundColor, marginTop: 5, marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 20, borderWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
                                     <FontAwesome name="play-circle" size={32} color={lightPrimaryColor} />
                                 </View>
@@ -156,7 +192,7 @@ export class Directory extends Component {
     }
 
     _onRefresh() {
-        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => { this.XHR(ip, port, '/browser.html?path=' + this.state.searchBar) }))
+        AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => { this.XHR(String(ip), String(port), '/browser.html') }))
     }
 
     render() {
@@ -165,7 +201,7 @@ export class Directory extends Component {
                 <View style={{ backgroundColor: primaryColor, height: 50, elevation: 5, borderBottomWidth: 1, justifyContent: 'center' }}>
                     <View style={{ backgroundColor: 'white', marginLeft: 5, marginRight: 5, elevation: 5, borderRadius: 10, borderWidth: 1 }}>
                         <TextInput style={{ marginLeft: 5 }} underlineColorAndroid="transparent" autoCorrect={false} value={this.state.searchBar} onChangeText={(text) => this.setState({ searchBar: text })} onEndEditing={() => {
-                            AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(ip, port, "/browser.html?path=" + this.state.searchBar)))
+                            AsyncStorage.getItem('IP').then((ip) => AsyncStorage.getItem('PORT').then((port) => this.XHR(String(ip), String(port), "/browser.html?path=" + this.state.searchBar)))
                         }} />
                     </View>
                 </View>
