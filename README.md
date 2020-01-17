@@ -2,7 +2,7 @@
 
 Remote control for Media Player Classic - Home Cinema's web interface. Includes directory browsing and file extension filtering.
 
-![Screenshot](https://laaksonen.me/MPCHCRemote.png)
+![Screenshot](https://i.imgur.com/JtW4E7q.png)
 
 ## Getting Started
 
@@ -48,7 +48,7 @@ npm run android
 
 Expo
 
-![Screenshot](https://laaksonen.me/qr.png)
+![Screenshot](https://i.imgur.com/QFkLBl8.png)
 
 ```
 @telaak/mpchc-remote
